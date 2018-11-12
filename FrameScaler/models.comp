@@ -1,0 +1,3 @@
+DATAS = \
+	models/69K.obj : assets/models/69K.obj \
+	models/69K.mtl : assets/models/69K.mtl

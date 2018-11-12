@@ -1,0 +1,20 @@
+INCS = inc/
+KIND = program
+OPTIONS = \
+	exceptions/on \
+	standard-c++/11 \
+	stl/libgnustl \
+	warn/on
+
+SRCS = \
+	src/FrameScaler.cpp \
+	src/FrameScalerSampleApp.cpp \
+	src/ModelObj.cpp \
+	src/ShaderUtils.cpp \
+	src/graphics_context_t.cpp
+
+USES = \
+	OpenGL \
+	ml_sdk \
+	stdc++
+
