@@ -32,6 +32,8 @@ public:
 	glm::vec3 position = glm::vec3(0, 0, 0);
 	glm::vec3 rotation = glm::vec3(0, 0, 0);
 	glm::vec3 scale = glm::vec3(1, 1, 1);
+
+	std::vector<glm::vec3> vertices;
 };
 
 ModelObj::ModelObj()
@@ -60,6 +62,16 @@ void ModelObj::Load(std::string path, std::string base_path)
 	ML_LOG(Info, "shape material: %d %d\n", shapes.size(), materials.size());
 
 	ML_LOG(Info, "# of vertices: %d\n", attrib.vertices.size());
+
+	for (auto shape : shapes) {
+		for (auto idx : shape.mesh.indices) {
+			float x = attrib.vertices[3 * idx.vertex_index + 0];
+			float y = attrib.vertices[3 * idx.vertex_index + 1];
+			float z = attrib.vertices[3 * idx.vertex_index + 2];
+
+			impl->vertices.push_back(glm::vec3(x, y, z));
+		}
+	}
 }
 
 void ModelObj::SetShaders(std::string vertex_shader_path, std::string frag_shader_path)
@@ -77,16 +89,9 @@ bool ModelObj::Create()
 	glGenVertexArrays(1, &impl->vertex_array_id);
 	glBindVertexArray(impl->vertex_array_id);
 
-	static const GLfloat vertex_buffer_data[] =
-	{
-		-1.0f, -1.0f, 0.0f,
-		1.0f, -1.0f, 0.0f,
-		0.0f, 1.0f, 0.0f
-	};
-
 	glGenBuffers(1, &impl->vertex_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, impl->vertex_buffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_buffer_data), vertex_buffer_data, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * impl->vertices.size(), impl->vertices.data(), GL_STATIC_DRAW);
 
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
@@ -123,7 +128,7 @@ void ModelObj::Render(glm::mat4 VP)
 
 	glBindVertexArray(impl->vertex_array_id);
 
-	glDrawArrays(GL_TRIANGLES, 0, 3);
+	glDrawArrays(GL_TRIANGLES, 0, impl->vertices.size());
 
 	glBindVertexArray(0);
 

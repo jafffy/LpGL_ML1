@@ -298,7 +298,7 @@ bool FrameScalerSampleApp::InitContents()
 	impl->model->Load("assets/models/69K.obj", "assets/models");
 	impl->model->SetShaders("assets/shaders/basic3D.vert", "assets/shaders/basic3D.frag");
 	impl->model->SetPosition(glm::vec3(0, 0, -5));
-	impl->model->SetScale(glm::vec3(0.5f, 0.5f, 0.5f));
+	impl->model->SetScale(glm::vec3(5.0f));
 
 	if (!impl->model->Create())
 		return false;
