@@ -1,11 +1,14 @@
 #include "FrameScalerSampleApp.h"
 #include "ModelObj.h"
+#include "qds.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 
 #include <chrono>
 #include <cmath>
+#include <vector>
+
 #include <unistd.h>
 
 #ifndef EGL_EGLEXT_PROTOTYPES
@@ -130,7 +133,7 @@ class FrameScalerSampleAppImpl
 public:
 	graphics_context_t graphics_context;
 	MLHandle graphics_client = ML_INVALID_HANDLE;
-	ModelObj* model;
+	std::vector<ModelObj*> models;
 };
 
 FrameScalerSampleApp::FrameScalerSampleApp()
@@ -203,14 +206,14 @@ int FrameScalerSampleApp::Start()
   while (application_context.dummy_value) {
 	  auto start = std::chrono::steady_clock::now();
 	  OnRender();
-	  double target_frame_rate = 60.0f; // 5.0f; // 60.0;
+	  qds_update();
+	  double target_frame_rate = get_recommended_framerate();
 	  auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count();
 	  auto expected_time_ms = 1000.0 / target_frame_rate;
 	  auto blanked_time_ms = expected_time_ms - elapsed_time;
 
 	  if (blanked_time_ms > 0)
 	  {
-		  ML_LOG(Info, "blanked_time_ms: %u\n", useconds_t(blanked_time_ms * 1000));
 		  usleep(useconds_t(blanked_time_ms * 1000));
 	  }
   }
@@ -293,33 +296,52 @@ void FrameScalerSampleApp::OnRender()
 
 bool FrameScalerSampleApp::InitContents()
 {
-	impl->model = new ModelObj();
+	int n = 15;
 
-	impl->model->Load("assets/models/69K.obj", "assets/models");
-	impl->model->SetShaders("assets/shaders/basic3D.vert", "assets/shaders/basic3D.frag");
-	impl->model->SetPosition(glm::vec3(0, 0, -5));
-	impl->model->SetScale(glm::vec3(5.0f));
+	for (int i = 0; i < n; ++i) {
+		double t = i / (double)n;
+		double r = 5.0f;
+		float s = sinf(t * 2 * M_PI);
+		float c = cosf(t * 2 * M_PI);
 
-	if (!impl->model->Create())
-		return false;
+		auto model = new ModelObj();
+
+		model->Load("assets/models/69K.obj", "assets/models");
+		model->SetShaders("assets/shaders/basic3D.vert", "assets/shaders/basic3D.frag");
+		model->SetPosition(glm::vec3(r*c, 0, r*s));
+		model->SetScale(glm::vec3(5.0f));
+
+		if (!model->Create())
+			return false;
+
+		impl->models.push_back(model);
+	}
 
 	return true;
 }
 
 void FrameScalerSampleApp::DestroyContents()
 {
-	impl->model->Destroy();
+	for (auto* model : impl->models) {
+		model->Destroy();
 
-	if (impl->model) {
-		delete impl->model;
-		impl->model = nullptr;
+		if (model) {
+			delete model;
+			model = nullptr;
+		}
 	}
+
+	impl->models.clear();
 }
 
 void FrameScalerSampleApp::Draw(int camera_number, glm::mat4 VP)
 {
+	for (auto* model : impl->models)
+		model->Update(VP);
+
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	impl->model->Render(VP);
+	for (auto* model : impl->models)
+		model->Render();
 }

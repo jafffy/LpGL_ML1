@@ -11,7 +11,8 @@ SRCS = \
 	src/FrameScalerSampleApp.cpp \
 	src/ModelObj.cpp \
 	src/ShaderUtils.cpp \
-	src/graphics_context_t.cpp
+	src/graphics_context_t.cpp \
+	src/qds.cpp
 
 USES = \
 	OpenGL \

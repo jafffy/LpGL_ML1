@@ -211,13 +211,17 @@
     <ClCompile Include="src\FrameScalerSampleApp.cpp" />
     <ClCompile Include="src\graphics_context_t.cpp" />
     <ClCompile Include="src\ModelObj.cpp" />
+    <ClCompile Include="src\qds.cpp" />
     <ClCompile Include="src\ShaderUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inc/FrameScaler.h" />
+    <ClInclude Include="inc\BoundingBox.h" />
+    <ClInclude Include="inc\Experiment.h" />
     <ClInclude Include="inc\FrameScalerSampleApp.h" />
     <ClInclude Include="inc\graphics_context_t.h" />
     <ClInclude Include="inc\ModelObj.h" />
+    <ClInclude Include="inc\qds.h" />
     <ClInclude Include="inc\ShaderUtils.h" />
     <ClInclude Include="inc\tinyobjloader.h" />
   </ItemGroup>
@@ -236,7 +240,7 @@
   </ItemGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties MLProjectMabuSyncTime="131865055422850858 (2018-11-12 오후 2:12:22 UTC)" />
+      <UserProperties MLProjectMabuSyncTime="131865922076420230 (2018-11-13 오후 2:16:47 UTC)" />
     </VisualStudio>
   </ProjectExtensions>
 </Project>

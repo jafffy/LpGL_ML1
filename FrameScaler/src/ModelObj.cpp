@@ -1,7 +1,11 @@
+#include "Experiment.h"
 #include "ModelObj.h"
+#include "qds.h"
+#include "BoundingBox.h"
 
 #include <string>
 #include <vector>
+#include <cfloat>
 
 #include <ml_logging.h>
 
@@ -34,6 +38,12 @@ public:
 	glm::vec3 scale = glm::vec3(1, 1, 1);
 
 	std::vector<glm::vec3> vertices;
+
+	glm::vec3 bounding_box[8];
+
+	bool is_culled = false;
+
+	glm::mat4 MVP;
 };
 
 ModelObj::ModelObj()
@@ -59,9 +69,7 @@ void ModelObj::Load(std::string path, std::string base_path)
 	std::string err;
 	bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, path.c_str(), base_path.c_str());
 
-	ML_LOG(Info, "shape material: %d %d\n", shapes.size(), materials.size());
-
-	ML_LOG(Info, "# of vertices: %d\n", attrib.vertices.size());
+	glm::vec3 min_point(FLT_MAX), max_point(-FLT_MAX);
 
 	for (auto shape : shapes) {
 		for (auto idx : shape.mesh.indices) {
@@ -69,9 +77,38 @@ void ModelObj::Load(std::string path, std::string base_path)
 			float y = attrib.vertices[3 * idx.vertex_index + 1];
 			float z = attrib.vertices[3 * idx.vertex_index + 2];
 
+			if (x < min_point.x) {
+				min_point.x = x;
+			}
+			if (y < min_point.y) {
+				min_point.y = y;
+			}
+			if (z < min_point.z) {
+				min_point.z = z;
+			}
+
+			if (x > max_point.x) {
+				max_point.x = x;
+			}
+			if (y > max_point.y) {
+				max_point.y = y;
+			}
+			if (z > max_point.z) {
+				max_point.z = z;
+			}
+
 			impl->vertices.push_back(glm::vec3(x, y, z));
 		}
 	}
+
+	impl->bounding_box[0] = glm::vec3(min_point.x, max_point.y, max_point.z);
+	impl->bounding_box[1] = glm::vec3(min_point.x, max_point.y, min_point.z);
+	impl->bounding_box[2] = glm::vec3(max_point.x, max_point.y, min_point.z);
+	impl->bounding_box[3] = max_point;
+	impl->bounding_box[4] = glm::vec3(min_point.x, min_point.y, max_point.z);
+	impl->bounding_box[5] = min_point;
+	impl->bounding_box[6] = glm::vec3(max_point.x, min_point.y, min_point.z);
+	impl->bounding_box[7] = glm::vec3(max_point.x, min_point.y, max_point.z);
 }
 
 void ModelObj::SetShaders(std::string vertex_shader_path, std::string frag_shader_path)
@@ -115,16 +152,71 @@ void ModelObj::Destroy()
 	glDeleteProgram(impl->program_id);
 }
 
-void ModelObj::Render(glm::mat4 VP)
+void ModelObj::Update(const glm::mat4& VP)
 {
-	glUseProgram(impl->program_id);
-
 	glm::mat4 model = glm::translate(impl->position)
 		* glm::orientate4(impl->rotation)
 		* glm::scale(impl->scale);
-	glm::mat4 MVP = VP * model;
+	impl->MVP = VP * model;
 
-	glUniformMatrix4fv(impl->matrix_id, 1, GL_FALSE, glm::value_ptr(MVP));
+#ifdef CULLING
+	glm::vec2 min_point(FLT_MAX), max_point(-FLT_MAX);
+	float min_z = FLT_MAX, max_z = -FLT_MAX;
+
+	// Application level culling
+	for (auto& pt : impl->bounding_box) {
+		auto pt_on_proj = impl->MVP * glm::vec4(pt, 1);
+		float x = pt_on_proj.x;
+		float y = pt_on_proj.y;
+		float z = pt_on_proj.z;
+
+		if (x < min_point.x) {
+			min_point.x = x;
+		}
+		if (y < min_point.y) {
+			min_point.y = y;
+		}
+		if (z < min_z) {
+			min_z = z;
+		}
+
+		if (x > max_point.x) {
+			max_point.x = x;
+		}
+		if (y > max_point.y) {
+			max_point.y = y;
+		}
+		if (z > max_z) {
+			max_z = z;
+		}
+	}
+
+	BoundingBox screen_bb(glm::vec2(-1, -1), glm::vec2(1, 1));
+	BoundingBox projected_bb(min_point * 0.5f, max_point * 0.5f);
+
+	if (max_z < 0) {
+		impl->is_culled = true;
+	}
+	else if (projected_bb.is_intersect_with(screen_bb)
+		|| projected_bb.is_contained_in(screen_bb)
+		|| screen_bb.is_contained_in(projected_bb)) {
+		qds_insert_bounding_box(projected_bb.min_point, projected_bb.max_point);
+		impl->is_culled = false;
+	}
+	else {
+		impl->is_culled = true;
+	}
+#endif
+}
+
+void ModelObj::Render()
+{
+	if (impl->is_culled)
+		return;
+
+	glUseProgram(impl->program_id);
+
+	glUniformMatrix4fv(impl->matrix_id, 1, GL_FALSE, glm::value_ptr(impl->MVP));
 
 	glBindVertexArray(impl->vertex_array_id);
 

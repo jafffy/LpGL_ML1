@@ -1,3 +1,5 @@
 DATAS = \
 	models/69K.obj : assets/models/69K.obj \
-	models/69K.mtl : assets/models/69K.mtl
+	models/69K.mtl : assets/models/69K.mtl \
+	models/908.obj : assets/models/908.obj \
+	models/908.mtl : assets/models/908.mtl
