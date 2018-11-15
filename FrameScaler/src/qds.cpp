@@ -74,9 +74,6 @@ void construct_quad_subtree(QuadTreeNode* parent, const BoundingBox& bb, int dep
 	BoundingBox subdivisions[] = { ul, ul, ll, lr };
 
 	for (int i = 0; i < 4; ++i) {
-		if (parent->children[i] && parent->children[i]->is_full)
-			continue;
-
 		auto& subdivision = subdivisions[i];
 
 		if (bb.is_contained_in(subdivision)
@@ -96,15 +93,6 @@ void construct_quad_subtree(QuadTreeNode* parent, const BoundingBox& bb, int dep
 			}
 		}
 	}
-
-	int full_counter = 0;
-	for (int i = 0; i < 4; ++i) {
-		if (!parent->children[i] || !parent->children[i]->is_full || !parent->children[i]->is_leaf)
-			break;
-		full_counter++;
-	}
-
-	parent->is_full = full_counter == 4;
 }
 
 static QuadTree* construct_quadtree()
