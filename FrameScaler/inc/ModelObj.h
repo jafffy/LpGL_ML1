@@ -18,7 +18,7 @@ public:
 	bool Create();
 	void Destroy();
 
-	void Update(const glm::mat4& VP);
+	void Update();
 	void Render();
 
 	void SetPosition(glm::vec3 position);

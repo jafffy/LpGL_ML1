@@ -1,6 +1,7 @@
 #include "FrameScalerSampleApp.h"
 #include "ModelObj.h"
 #include "qds.h"
+#include "Camera.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -204,9 +205,10 @@ int FrameScalerSampleApp::Start()
   ML_LOG(Info, "%s: Start loop.", application_name);
 
   while (application_context.dummy_value) {
-	  auto start = std::chrono::steady_clock::now();
+	  // auto start = std::chrono::steady_clock::now();
 	  OnRender();
-	  qds_update();
+	  // qds_update();
+	  /*
 	  double target_frame_rate = get_recommended_framerate();
 	  auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count();
 	  auto expected_time_ms = 1000.0 / target_frame_rate;
@@ -214,8 +216,9 @@ int FrameScalerSampleApp::Start()
 
 	  if (blanked_time_ms > 0)
 	  {
-		  usleep(useconds_t(blanked_time_ms * 1000));
+		  // usleep(useconds_t(blanked_time_ms * 1000));
 	  }
+	  */
   }
 
   ML_LOG(Info, "%s: End loop.", application_name);
@@ -278,10 +281,11 @@ void FrameScalerSampleApp::OnRender()
 		auto view_translation = glm::make_vec3(ml_view_pos.values);
 		auto view_rotation = glm::make_quat(ml_view_rot.values);
 
-		glm::mat4 V = glm::transpose(glm::translate(view_translation) * glm::toMat4(view_rotation));
-		glm::mat4 P = glm::make_mat4(ml_P.matrix_colmajor);
+		Camera::Instance().V = glm::transpose(glm::translate(view_translation) * glm::toMat4(view_rotation));
+		Camera::Instance().P = glm::make_mat4(ml_P.matrix_colmajor);
+		Camera::Instance().ratio = viewport.w / viewport.h;
 
-		Draw(camera, P * V);
+		Draw(camera);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		MLGraphicsSignalSyncObjectGL(impl->graphics_client, virtual_camera_array.virtual_cameras[camera].sync_object);
@@ -334,10 +338,10 @@ void FrameScalerSampleApp::DestroyContents()
 	impl->models.clear();
 }
 
-void FrameScalerSampleApp::Draw(int camera_number, glm::mat4 VP)
+void FrameScalerSampleApp::Draw(int camera_number)
 {
-	for (auto* model : impl->models)
-		model->Update(VP);
+	// for (auto* model : impl->models)
+		// model->Update();
 
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

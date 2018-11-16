@@ -19,7 +19,7 @@ public:
 
 	void Update(float dt);
 	void OnRender();
-	void Draw(int camera_number, glm::mat4 VP);
+	void Draw(int camera_number);
 
 private:
 	FrameScalerSampleAppImpl* impl = nullptr;

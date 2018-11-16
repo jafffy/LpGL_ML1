@@ -2,6 +2,7 @@
 #include "ModelObj.h"
 #include "qds.h"
 #include "BoundingBox.h"
+#include "Camera.h"
 
 #include <string>
 #include <vector>
@@ -152,12 +153,14 @@ void ModelObj::Destroy()
 	glDeleteProgram(impl->program_id);
 }
 
-void ModelObj::Update(const glm::mat4& VP)
+void ModelObj::Update()
 {
 	glm::mat4 model = glm::translate(impl->position)
 		* glm::orientate4(impl->rotation)
 		* glm::scale(impl->scale);
-	impl->MVP = VP * model;
+	glm::mat4 P = glm::perspective(90.0f, Camera::Instance().ratio, 0.5f, 100.0f);
+	impl->MVP = Camera::Instance().P * Camera::Instance().V * model;
+	auto MVP = P * Camera::Instance().V * model;
 
 #ifdef CULLING
 	glm::vec2 min_point(FLT_MAX), max_point(-FLT_MAX);
@@ -165,7 +168,7 @@ void ModelObj::Update(const glm::mat4& VP)
 
 	// Application level culling
 	for (auto& pt : impl->bounding_box) {
-		auto pt_on_proj = impl->MVP * glm::vec4(pt, 1);
+		auto pt_on_proj = MVP * glm::vec4(pt, 1);
 		float x = pt_on_proj.x;
 		float y = pt_on_proj.y;
 		float z = pt_on_proj.z;
@@ -192,12 +195,9 @@ void ModelObj::Update(const glm::mat4& VP)
 	}
 
 	BoundingBox screen_bb(glm::vec2(-1, -1), glm::vec2(1, 1));
-	BoundingBox projected_bb(min_point * 0.5f, max_point * 0.5f);
+	BoundingBox projected_bb(min_point, max_point);
 
-	if (max_z < 0) {
-		impl->is_culled = true;
-	}
-	else if (projected_bb.is_intersect_with(screen_bb)
+	if (projected_bb.is_intersect_with(screen_bb)
 		|| projected_bb.is_contained_in(screen_bb)
 		|| screen_bb.is_contained_in(projected_bb)) {
 		qds_insert_bounding_box(projected_bb.min_point, projected_bb.max_point);
@@ -211,8 +211,8 @@ void ModelObj::Update(const glm::mat4& VP)
 
 void ModelObj::Render()
 {
-	if (impl->is_culled)
-		return;
+	// if (impl->is_culled)
+		// return;
 
 	glUseProgram(impl->program_id);
 

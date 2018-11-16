@@ -217,6 +217,7 @@
   <ItemGroup>
     <ClInclude Include="inc/FrameScaler.h" />
     <ClInclude Include="inc\BoundingBox.h" />
+    <ClInclude Include="inc\Camera.h" />
     <ClInclude Include="inc\Experiment.h" />
     <ClInclude Include="inc\FrameScalerSampleApp.h" />
     <ClInclude Include="inc\graphics_context_t.h" />
@@ -240,7 +241,7 @@
   </ItemGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties MLProjectMabuSyncTime="131865922076420230 (2018-11-13 오후 2:16:47 UTC)" />
+      <UserProperties MLProjectMabuSyncTime="131867762452556476 (2018-11-15 오후 5:24:05 UTC)" />
     </VisualStudio>
   </ProjectExtensions>
 </Project>
