@@ -2,4 +2,10 @@ DATAS = \
 	models/69K.obj : assets/models/69K.obj \
 	models/69K.mtl : assets/models/69K.mtl \
 	models/908.obj : assets/models/908.obj \
-	models/908.mtl : assets/models/908.mtl
+	models/908.mtl : assets/models/908.mtl \
+	models/138K.obj : assets/models/138K.obj \
+	models/138K.mtl : assets/models/138K.mtl \
+	models/277K.obj : assets/models/277K.obj \
+	models/277K.mtl : assets/models/277K.mtl \
+	models/555K.obj : assets/models/555K.obj \
+	models/555K.mtl : assets/models/555K.mtl

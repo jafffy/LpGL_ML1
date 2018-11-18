@@ -158,8 +158,9 @@ void ModelObj::Update()
 	glm::mat4 model = glm::translate(impl->position)
 		* glm::orientate4(impl->rotation)
 		* glm::scale(impl->scale);
-	glm::mat4 P = glm::perspective(90.0f, Camera::Instance().ratio, 0.5f, 100.0f);
+	// glm::mat4 P = glm::perspective(90.0f, Camera::Instance().ratio, 0.5f, 100.0f);
 	impl->MVP = Camera::Instance().P * Camera::Instance().V * model;
+	/*
 	auto MVP = P * Camera::Instance().V * model;
 
 #ifdef CULLING
@@ -207,6 +208,7 @@ void ModelObj::Update()
 		impl->is_culled = true;
 	}
 #endif
+*/
 }
 
 void ModelObj::Render()

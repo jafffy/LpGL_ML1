@@ -2,6 +2,7 @@
 #include "ModelObj.h"
 #include "qds.h"
 #include "Camera.h"
+#include "Experiment.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -205,20 +206,19 @@ int FrameScalerSampleApp::Start()
   ML_LOG(Info, "%s: Start loop.", application_name);
 
   while (application_context.dummy_value) {
-	  // auto start = std::chrono::steady_clock::now();
+	  auto start = std::chrono::steady_clock::now();
 	  OnRender();
 	  // qds_update();
-	  /*
-	  double target_frame_rate = get_recommended_framerate();
+
+	  double target_frame_rate = TARGET_FRAME_RATE;
 	  auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count();
 	  auto expected_time_ms = 1000.0 / target_frame_rate;
 	  auto blanked_time_ms = expected_time_ms - elapsed_time;
 
 	  if (blanked_time_ms > 0)
 	  {
-		  // usleep(useconds_t(blanked_time_ms * 1000));
+		  usleep(useconds_t(blanked_time_ms * 1000));
 	  }
-	  */
   }
 
   ML_LOG(Info, "%s: End loop.", application_name);
@@ -300,7 +300,7 @@ void FrameScalerSampleApp::OnRender()
 
 bool FrameScalerSampleApp::InitContents()
 {
-	int n = 15;
+	int n = NUM_OBJECTS;
 
 	for (int i = 0; i < n; ++i) {
 		double t = i / (double)n;
@@ -340,8 +340,8 @@ void FrameScalerSampleApp::DestroyContents()
 
 void FrameScalerSampleApp::Draw(int camera_number)
 {
-	// for (auto* model : impl->models)
-		// model->Update();
+	for (auto* model : impl->models)
+		model->Update();
 
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
