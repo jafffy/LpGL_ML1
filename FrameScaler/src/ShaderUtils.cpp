@@ -6,7 +6,11 @@
 #include <vector>
 #include <string>
 
+#ifndef _WIN32
 #include <ml_logging.h>
+#else
+#include <glad/glad.h>
+#endif
 
 static GLuint create_shader(const char* shader_file_path, GLenum shader_type)
 {
@@ -23,7 +27,11 @@ static GLuint create_shader(const char* shader_file_path, GLenum shader_type)
 		vertex_shader_code = sstr.str();
 	}
 	else {
+#ifndef _WIN32
 		ML_LOG(Error, "Failed to open %s\n", shader_file_path);
+#else
+		fprintf(stderr, "Failed to open %s\n", shader_file_path);
+#endif
 		return -1;
 	}
 
@@ -38,7 +46,11 @@ static GLuint create_shader(const char* shader_file_path, GLenum shader_type)
 	if (len_compile_info_log > 0) {
 		std::vector<char> vertex_shader_error_mesage(len_compile_info_log);
 		glGetShaderInfoLog(vertex_shader_id, len_compile_info_log, nullptr, &vertex_shader_error_mesage[0]);
+#ifndef _WIN32
 		ML_LOG(Error, "%s\n", &vertex_shader_error_mesage[0]);
+#else
+		fprintf(stderr, "Failed to open %s\n", &vertex_shader_error_mesage[0]);
+#endif
 		return -1;
 	}
 
@@ -63,7 +75,11 @@ GLuint LoadShaders(const char* vertex_file_path, const char* fragment_file_path)
 	if (len_link_info_log > 0) {
 		std::vector<char> program_error_message(len_link_info_log + 1);
 		glGetProgramInfoLog(program_id, len_link_info_log, nullptr, &program_error_message[0]);
+#ifndef _WIN32
 		ML_LOG(Error, "%s\n", &program_error_message[0]);
+#else
+		fprintf(stderr, "%s\n", &program_error_message[0]);
+#endif
 	}
 
 	glDetachShader(program_id, vertex_shader_id);

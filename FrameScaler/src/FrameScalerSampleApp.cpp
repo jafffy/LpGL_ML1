@@ -11,6 +11,7 @@
 #include <cmath>
 #include <vector>
 
+#ifndef _WIN32
 #include <unistd.h>
 
 #ifndef EGL_EGLEXT_PROTOTYPES
@@ -32,6 +33,7 @@
 #include <ml_perception.h>
 #include <ml_lifecycle.h>
 #include <ml_logging.h>
+#endif
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtc/quaternion.hpp"
@@ -42,6 +44,8 @@
 
 // Constants
 const char application_name[] = "com.magicleap.simpleglapp";
+
+#ifndef _WIN32
 
 // Structures
 struct application_context_t {
@@ -129,6 +133,8 @@ static void onResume(void* application_context)
   ((struct application_context_t*)application_context)->dummy_value = 2;
   ML_LOG(Info, "%s: On resume called.", application_name);
 }
+
+#endif
 
 class FrameScalerSampleAppImpl
 {
