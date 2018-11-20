@@ -9,6 +9,6 @@
 
 #define NUM_OBJECTS 1
 
-#define TARGET_MODEL_FILEPATH "assets/models/555K.obj"
+#define TARGET_MODEL_FILEPATH "assets/models/69K.obj"
 
 #endif // EXPERIMENT_H_

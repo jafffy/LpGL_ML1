@@ -235,13 +235,15 @@
     <None Include="shaders\basic.vert" />
     <None Include="shaders\basic3D.frag" />
     <None Include="shaders\basic3D.vert" />
+    <None Include="shaders\phong.frag" />
+    <None Include="shaders\phong.vert" />
   </ItemGroup>
   <ItemGroup>
     <None Include="FrameScaler.package" />
   </ItemGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties MLProjectMabuSyncTime="131867762452556476 (2018-11-15 오후 5:24:05 UTC)" />
+      <UserProperties MLProjectMabuSyncTime="131871969353522122 (2018-11-20 오후 2:15:35 UTC)" />
     </VisualStudio>
   </ProjectExtensions>
 </Project>
