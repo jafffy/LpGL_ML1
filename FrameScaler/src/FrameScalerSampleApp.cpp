@@ -310,7 +310,7 @@ bool FrameScalerSampleApp::InitContents()
 
 		auto model = new ModelObj();
 
-		model->Load("assets/models/69K.obj", "assets/models");
+		model->Load(TARGET_MODEL_FILEPATH, "assets/models");
 		model->SetShaders("assets/shaders/basic3D.vert", "assets/shaders/basic3D.frag");
 		model->SetPosition(glm::vec3(r*c, 0, r*s));
 		model->SetScale(glm::vec3(5.0f));
