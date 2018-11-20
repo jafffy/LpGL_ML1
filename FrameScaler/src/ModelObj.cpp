@@ -8,7 +8,11 @@
 #include <vector>
 #include <cfloat>
 
+#ifndef _WIN32
 #include <ml_logging.h>
+#else
+#include <glad/glad.h>
+#endif
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/glm.hpp"
