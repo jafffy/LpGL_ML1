@@ -17,8 +17,6 @@ out vec3 normal;
 void main() {
 	gl_Position = MVP * vec4(vertexPosition_modelspace, 1);
 
-	Position_worldspace = (M * vec4(vertexPosition_modelspace, 1)).xyz;
-
 	vec3 vertexPosition_cameraspace = (V * (M * vec4(vertexPosition_modelspace, 1)).xyz;
 	EyeDirection_cameraspace = vec3(0, 0, 0) - vertexPosition_cameraspace;
 

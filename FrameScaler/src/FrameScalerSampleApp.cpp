@@ -311,13 +311,13 @@ bool FrameScalerSampleApp::InitContents()
 	for (int i = 0; i < n; ++i) {
 		double t = i / (double)n;
 		double r = 5.0f;
-		float s = sinf(t * 2 * M_PI);
-		float c = cosf(t * 2 * M_PI);
+		float s = sinf(t * M_PI / 4);
+		float c = cosf(t * M_PI / 4);
 
 		auto model = new ModelObj();
 
 		model->Load(TARGET_MODEL_FILEPATH, "assets/models");
-		model->SetShaders("assets/shaders/basic3D.vert", "assets/shaders/basic3D.frag");
+		model->SetShaders(VS_FILE_PATH, FS_FILE_PATH);
 		model->SetPosition(glm::vec3(r*c, 0, r*s));
 		model->SetScale(glm::vec3(5.0f));
 

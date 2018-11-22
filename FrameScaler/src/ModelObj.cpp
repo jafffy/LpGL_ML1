@@ -44,6 +44,11 @@ public:
 
 	glm::mat4 MVP;
 	GLuint matrix_id;
+
+	glm::mat4 V;
+	glm::mat4 M;
+	GLuint V_id;
+	GLuint M_id;
 };
 
 ModelObj::ModelObj()
@@ -75,7 +80,12 @@ void ModelObj::Load(std::string path, std::string base_path)
 			float y = attrib.vertices[3 * idx.vertex_index + 1];
 			float z = attrib.vertices[3 * idx.vertex_index + 2];
 
+			float nx = attrib.normals[3 * idx.normal_index + 0];
+			float ny = attrib.normals[3 * idx.normal_index + 1];
+			float nz = attrib.normals[3 * idx.normal_index + 2];
+
 			impl->vertices.push_back(glm::vec3(x, y, z));
+			impl->vertices.push_back(glm::vec3(nx, ny, nz));
 		}
 	}
 }
@@ -100,13 +110,17 @@ bool ModelObj::Create()
 	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * impl->vertices.size(), impl->vertices.data(), GL_STATIC_DRAW);
 
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3) * 2, (void*)0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3) * 2, (void*)sizeof(glm::vec3));
 
 	glBindVertexArray(0);
 
 	glUseProgram(impl->program_id);
 
 	impl->matrix_id = glGetUniformLocation(impl->program_id, "MVP");
+	impl->M_id = glGetUniformLocation(impl->program_id, "M");
+	impl->V_id = glGetUniformLocation(impl->program_id, "V");
 
 	glUseProgram(0);
 
@@ -127,6 +141,8 @@ void ModelObj::Update()
 		* glm::orientate4(impl->rotation)
 		* glm::scale(impl->scale);
 	impl->MVP = Camera::Instance().P * Camera::Instance().V * model;
+	impl->M = model;
+	impl->V = Camera::Instance().V;
 }
 
 void ModelObj::Render()
@@ -134,6 +150,8 @@ void ModelObj::Render()
 	glUseProgram(impl->program_id);
 
 	glUniformMatrix4fv(impl->matrix_id, 1, GL_FALSE, glm::value_ptr(impl->MVP));
+	glUniformMatrix4fv(impl->M_id, 1, GL_FALSE, glm::value_ptr(impl->M));
+	glUniformMatrix4fv(impl->V_id, 1, GL_FALSE, glm::value_ptr(impl->V));
 
 	glBindVertexArray(impl->vertex_array_id);
 
