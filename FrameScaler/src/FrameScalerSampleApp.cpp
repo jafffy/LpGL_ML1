@@ -1,147 +1,169 @@
 #include "FrameScalerSampleApp.h"
+#include "BoundingBox.h"
 #include "ModelObj.h"
-#include "qds.h"
 #include "Camera.h"
 #include "Experiment.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <chrono>
-#include <cmath>
 #include <vector>
+#include <functional>
 
 #ifndef _WIN32
-#include <unistd.h>
-
-#ifndef EGL_EGLEXT_PROTOTYPES
-#define EGL_EGLEXT_PROTOTYPES
-#endif
-
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
-
-#ifndef GL_GLEXT_PROTOTYPES
-#define GL_GLEXT_PROTOTYPES
-#endif
-
 #include <GLES3/gl3.h>
 #include <GLES3/gl3ext.h>
 
-#include <ml_graphics.h>
-#include <ml_head_tracking.h>
-#include <ml_perception.h>
-#include <ml_lifecycle.h>
 #include <ml_logging.h>
 #endif
 
-#define GLM_ENABLE_EXPERIMENTAL
-#include "glm/gtc/quaternion.hpp"
-#include "glm/gtc/matrix_transform.hpp"
-#include "glm/gtc/type_ptr.hpp"
-#include "glm/gtx/quaternion.hpp"
-#include "glm/gtx/transform.hpp"
-
-// Constants
-const char application_name[] = "com.magicleap.simpleglapp";
-
-#ifndef _WIN32
-
-// Structures
-struct application_context_t {
-  int dummy_value;
-};
-
-struct graphics_context_t {
-  EGLDisplay egl_display;
-  EGLContext egl_context;
-
-  GLuint framebuffer_id;
-  GLuint vertex_shader_id;
-  GLuint fragment_shader_id;
-  GLuint program_id;
-
-  graphics_context_t();
-  ~graphics_context_t();
-
-  void makeCurrent();
-  void swapBuffers();
-  void unmakeCurrent();
-};
-
-graphics_context_t::graphics_context_t() {
-  egl_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-
-  EGLint major = 4;
-  EGLint minor = 0;
-  eglInitialize(egl_display, &major, &minor);
-  eglBindAPI(EGL_OPENGL_API);
-
-  EGLint config_attribs[] = {
-    EGL_RED_SIZE, 5,
-    EGL_GREEN_SIZE, 6,
-    EGL_BLUE_SIZE, 5,
-    EGL_ALPHA_SIZE, 0,
-    EGL_DEPTH_SIZE, 24,
-    EGL_STENCIL_SIZE, 8,
-    EGL_NONE
-  };
-  EGLConfig egl_config = nullptr;
-  EGLint config_size = 0;
-  eglChooseConfig(egl_display, config_attribs, &egl_config, 1, &config_size);
-
-  EGLint context_attribs[] = {
-    EGL_CONTEXT_MAJOR_VERSION_KHR, 3,
-    EGL_CONTEXT_MINOR_VERSION_KHR, 0,
-    EGL_NONE
-  };
-  egl_context = eglCreateContext(egl_display, egl_config, EGL_NO_CONTEXT, context_attribs);
-}
-
-void graphics_context_t::makeCurrent() {
-  eglMakeCurrent(egl_display, EGL_NO_SURFACE, EGL_NO_SURFACE, egl_context);
-}
-
-void graphics_context_t::unmakeCurrent() {
-  eglMakeCurrent(NULL, EGL_NO_SURFACE, EGL_NO_SURFACE, NULL);
-}
-
-void graphics_context_t::swapBuffers() {
-  // buffer swapping is implicit on device (MLGraphicsEndFrame)
-}
-
-graphics_context_t::~graphics_context_t() {
-  eglDestroyContext(egl_display, egl_context);
-  eglTerminate(egl_display);
-}
-
-// Callbacks
-static void onStop(void* application_context)
-{
-  ((struct application_context_t*)application_context)->dummy_value = 0;
-  ML_LOG(Info, "%s: On stop called.", application_name);
-}
-
-static void onPause(void* application_context)
-{
-  ((struct application_context_t*)application_context)->dummy_value = 1;
-  ML_LOG(Info, "%s: On pause called.", application_name);
-}
-
-static void onResume(void* application_context)
-{
-  ((struct application_context_t*)application_context)->dummy_value = 2;
-  ML_LOG(Info, "%s: On resume called.", application_name);
-}
-
+#define LOW
+#ifdef LOW
+static struct {
+	float level1 = 0.7f;
+	float level2 = 0.5f;
+} threshold;
 #endif
+#ifdef HIGH
+static struct {
+	float level1 = 0.4f;
+	float level2 = 0.2f;
+} threshold;
+#endif
+#ifdef ORIGIN
+static struct {
+	float level1 = 0.0f;
+	float level2 = 0.0f;
+} threshold;
+#endif
+
+struct QuadTree
+{
+	struct Node
+	{
+		Node* parent = nullptr;
+		Node* children[4] = { nullptr, nullptr, nullptr, nullptr };
+
+		bool isFull = false;
+		int depth;
+	};
+
+	Node* rootNode = nullptr;
+
+	static QuadTree* Create(const std::vector<const BoundingBox2D*>& geometries, const int kMaxDepth);
+
+	~QuadTree()
+	{
+		DeleteSubtree(rootNode);
+
+		if (rootNode) {
+			delete rootNode;
+			rootNode = nullptr;
+		}
+	}
+
+	void DeleteSubtree(Node* node)
+	{
+		if (!node)
+			return;
+
+		for (auto* child : node->children) {
+			DeleteSubtree(child);
+
+			if (child) {
+				delete child;
+				child = nullptr;
+			}
+		}
+	}
+};
+
+QuadTree* QuadTree::Create(const std::vector<const BoundingBox2D*>& geometries, const int kMaxDepth)
+{
+	QuadTree* res = new QuadTree();
+
+	std::function<void(const BoundingBox2D&, const std::vector<const BoundingBox2D*>&, int, QuadTree::Node*)> addDepth
+		= [&](const BoundingBox2D& area, const std::vector<const BoundingBox2D*>& geometries, int depth, QuadTree::Node* parent) {
+		auto& Min = area.Min;
+		auto& Max = area.Max;
+		float halfWidth = area.Width() * 0.5f;
+		float halfHeight = area.Height() * 0.5f;
+		std::vector<BoundingBox2D> subareas;
+		subareas.push_back(BoundingBox2D(glm::vec2(Min.x, Min.y), glm::vec2(Min.x + halfWidth, Min.y + halfHeight)));
+		subareas.push_back(BoundingBox2D(glm::vec2(Min.x + halfWidth, Min.y), glm::vec2(Max.x, Min.y + halfHeight)));
+		subareas.push_back(BoundingBox2D(glm::vec2(Min.x, Min.y + halfHeight), glm::vec2(Min.x + halfWidth, Max.y)));
+		subareas.push_back(BoundingBox2D(glm::vec2(Min.x + halfWidth, Min.y + halfHeight), glm::vec2(Max.x, Max.y)));
+
+		for (int i = 0; i < subareas.size(); ++i) {
+			auto& subarea = subareas[i];
+
+			for (auto* geometry : geometries) {
+				if (subarea.Intersect(*geometry)) {
+					QuadTree::Node* pNode = new QuadTree::Node();
+					parent->children[i] = pNode;
+					pNode->parent = parent;
+					pNode->isFull = false;
+					pNode->depth = depth;
+
+					if (depth + 1 < kMaxDepth) {
+						addDepth(subarea, geometries, depth + 1, pNode);
+					}
+
+					break;
+				}
+			}
+		}
+
+		parent->isFull = parent->children[0] && parent->children[1] && parent->children[2] && parent->children[3];
+	};
+
+	BoundingBox2D viewArea(glm::vec2(-1, -1), glm::vec2(1, 1));
+	QuadTree::Node* pRootNode = new QuadTree::Node();
+	pRootNode->parent = nullptr;
+	pRootNode->isFull = true;
+	pRootNode->depth = 0;
+
+	res->rootNode = pRootNode;
+
+	addDepth(viewArea, geometries, 1, res->rootNode);
+
+	return res;
+}
+
+static QuadTree* lastQuadTree = nullptr;
+
+float GetDynamicScoreBasedOnQuadtree(const QuadTree::Node* prev, const QuadTree::Node* current)
+{
+	float sum = 0.0f;
+
+	for (int i = 0; i < 4; ++i) {
+		bool prevExist = prev->children[i];
+		bool currentExist = current->children[i];
+
+		if (prevExist && currentExist) {
+			sum += GetDynamicScoreBasedOnQuadtree(prev->children[i], current->children[i]);
+		}
+		else if (prevExist != currentExist) {
+			assert(prev->depth == current->depth);
+
+			if (prevExist) {
+				sum += 1.0f / (4 * prev->children[i]->depth);
+			}
+			else if (currentExist) {
+				sum += 1.0f / (4 * current->children[i]->depth);
+			}
+		}
+	}
+
+	return sum;
+}
+
 
 class FrameScalerSampleAppImpl
 {
 public:
-	graphics_context_t graphics_context;
-	MLHandle graphics_client = ML_INVALID_HANDLE;
 	std::vector<ModelObj*> models;
+	int targetFrameRate = 60;
 };
 
 FrameScalerSampleApp::FrameScalerSampleApp()
@@ -159,86 +181,6 @@ FrameScalerSampleApp::~FrameScalerSampleApp()
 
 int FrameScalerSampleApp::Start()
 {
-  MLLifecycleCallbacks lifecycle_callbacks = {};
-  lifecycle_callbacks.on_stop = onStop;
-  lifecycle_callbacks.on_pause = onPause;
-  lifecycle_callbacks.on_resume = onResume;
-
-  struct application_context_t application_context;
-  application_context.dummy_value = 2;
-
-  if (MLResult_Ok != MLLifecycleInit(&lifecycle_callbacks, (void*)&application_context)) {
-    ML_LOG(Error, "%s: Failed to initialize lifecycle.", application_name);
-    return -1;
-  }
-
-  // initialize perception system
-  MLPerceptionSettings perception_settings;
-  if (MLResult_Ok != MLPerceptionInitSettings(&perception_settings)) {
-    ML_LOG(Error, "%s: Failed to initialize perception.", application_name);
-  }
-
-  if (MLResult_Ok != MLPerceptionStartup(&perception_settings)) {
-    ML_LOG(Error, "%s: Failed to startup perception.", application_name);
-    return -1;
-  }
-
-  // Get ready to connect our GL context to the MLSDK graphics API
-  impl->graphics_context.makeCurrent();
-  glGenFramebuffers(1, &impl->graphics_context.framebuffer_id);
-
-  MLGraphicsOptions graphics_options = { 0, MLSurfaceFormat_RGBA8UNorm, MLSurfaceFormat_D32Float };
-  MLHandle opengl_context = reinterpret_cast<MLHandle>(impl->graphics_context.egl_context);
-  MLGraphicsCreateClientGL(&graphics_options, opengl_context, &impl->graphics_client);
-
-  // Now that graphics is connected, the app is ready to go
-  if (MLResult_Ok != MLLifecycleSetReadyIndication()) {
-    ML_LOG(Error, "%s: Failed to indicate lifecycle ready.", application_name);
-    return -1;
-  }
-
-  MLHandle head_tracker;
-  MLResult head_track_result = MLHeadTrackingCreate(&head_tracker);
-  MLHeadTrackingStaticData head_static_data;
-  if (MLResult_Ok == head_track_result && MLHandleIsValid(head_tracker)) {
-    MLHeadTrackingGetStaticData(head_tracker, &head_static_data);
-  } else {
-    ML_LOG(Error, "%s: Failed to create head tracker.", application_name);
-  }
-
-  if (!InitContents())
-	  return -1;
-
-  ML_LOG(Info, "%s: Start loop.", application_name);
-
-  while (application_context.dummy_value) {
-	  auto start = std::chrono::steady_clock::now();
-	  OnRender();
-	  // qds_update();
-
-	  double target_frame_rate = TARGET_FRAME_RATE;
-	  auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count();
-	  auto expected_time_ms = 1000.0 / target_frame_rate;
-	  auto blanked_time_ms = expected_time_ms - elapsed_time;
-
-	  if (blanked_time_ms > 0)
-	  {
-		  usleep(useconds_t(blanked_time_ms * 1000));
-	  }
-  }
-
-  ML_LOG(Info, "%s: End loop.", application_name);
-
-  DestroyContents();
-
-  impl->graphics_context.unmakeCurrent();
-
-  glDeleteFramebuffers(1, &impl->graphics_context.framebuffer_id);
-
-  // clean up system
-  MLGraphicsDestroyClient(&impl->graphics_client);
-  MLPerceptionShutdown();
-
   return 0;
 }
 
@@ -252,56 +194,110 @@ void FrameScalerSampleApp::Update(float dt)
 
 }
 
-void FrameScalerSampleApp::OnRender()
+void FrameScalerSampleApp::OnRender(int cameraIndex)
 {
-	MLGraphicsFrameParams frame_params;
+	for (auto* model : impl->models)
+		model->Update();
 
-	MLResult out_result = MLGraphicsInitFrameParams(&frame_params);
-	if (MLResult_Ok != out_result) {
-		ML_LOG(Error, "MLGraphicsInitFrameParams complained: %d", out_result);
+#ifdef QDS
+
+	if (cameraIndex == 0) {
+		std::vector<const BoundingBox2D*> bbs;
+
+		for (auto* model : impl->models) {
+			std::vector<glm::vec3> boundingVertices = model->GetBoundingBox();
+			auto boundingBox2D = new BoundingBox2D();
+
+			for (const auto& v : boundingVertices) {
+				glm::vec4 result = Camera::Instance().P_for_LpGL * (Camera::Instance().V * glm::vec4(v, 1.0f));
+				boundingBox2D->AddPoint(result.x, result.y);
+			}
+
+			if (boundingBox2D->Min.y > 1 || boundingBox2D->Max.y < -1
+				|| boundingBox2D->Min.x > 1 || boundingBox2D->Max.x < -1)
+			{
+				model->SetVisible(false);
+			}
+			else
+			{
+				model->SetVisible(true);
+				bbs.push_back(boundingBox2D);
+
+				if (boundingBox2D->Min.y > 0.50 || boundingBox2D->Max.y < -0.50
+					|| boundingBox2D->Min.x > 0.50 || boundingBox2D->Max.x < -0.50) {
+					model->SetReductionLevel(2);
+				} else if (boundingBox2D->Min.y > 0.25 || boundingBox2D->Max.y < -0.25
+					|| boundingBox2D->Min.x > 0.25 || boundingBox2D->Max.x < -0.25) {
+					model->SetReductionLevel(1);
+				} else {
+					model->SetReductionLevel(0);
+				}
+			}
+		}
+
+		auto* quadTree = QuadTree::Create(bbs, QDS_DEPTH);
+
+		if (lastQuadTree) {
+			float dynamicScore = GetDynamicScoreBasedOnQuadtree(lastQuadTree->rootNode, quadTree->rootNode);
+
+			if (dynamicScore > 0)
+				ML_LOG(Info, "dynamic score: %f\n", dynamicScore);
+
+			if (GetTargetFrameRate() > 60 - 1) {
+				if (dynamicScore < threshold.level1) {
+					SetTargetFrameRate(30);
+				}
+			}
+			else if (GetTargetFrameRate() > 30 - 1) {
+				if (dynamicScore > threshold.level1) {
+					SetTargetFrameRate(60);
+				}
+				else if (dynamicScore < threshold.level2) {
+					SetTargetFrameRate(15);
+				}
+			}
+			else if (GetTargetFrameRate() > 15 - 1) {
+				if (dynamicScore > threshold.level2) {
+					SetTargetFrameRate(30);
+				}
+			}
+
+			if (lastQuadTree) {
+				delete lastQuadTree;
+				lastQuadTree = nullptr;
+			}
+		}
+
+		for (int i = 0; i < bbs.size(); ++i) {
+			if (bbs[i]) {
+				delete bbs[i];
+				bbs[i] = nullptr;
+			}
+		}
+
+		lastQuadTree = quadTree;
 	}
-	frame_params.surface_scale = 1.0f;
-	frame_params.projection_type = MLGraphicsProjectionType_ReversedInfiniteZ;
-	frame_params.near_clip = 1.0f;
-	frame_params.focus_distance = 1.0f;
+#endif
 
-	MLHandle frame_handle;
-	MLGraphicsVirtualCameraInfoArray virtual_camera_array;
-	out_result = MLGraphicsBeginFrame(impl->graphics_client, &frame_params, &frame_handle, &virtual_camera_array);
-	if (MLResult_Ok != out_result) {
-		ML_LOG(Error, "MLGraphicsBeginFrame complained: %d", out_result);
-	}
+	glClearColor(0.0, 0.0, 0.0, 0.0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	for (int camera = 0; camera < virtual_camera_array.num_virtual_cameras; ++camera) {
-		glBindFramebuffer(GL_FRAMEBUFFER, impl->graphics_context.framebuffer_id);
-		glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, virtual_camera_array.color_id, 0, camera);
-		glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, virtual_camera_array.depth_id, 0, camera);
-		const MLRectf& viewport = virtual_camera_array.viewport;
-		glViewport((GLint)viewport.x, (GLint)viewport.y,
-			(GLsizei)viewport.w, (GLsizei)viewport.h);
+	for (auto* model : impl->models)
+		model->Render();
+}
 
-		auto ml_view_pos = virtual_camera_array.virtual_cameras[camera].transform.position;
-		auto ml_view_rot = virtual_camera_array.virtual_cameras[camera].transform.rotation;
-		auto ml_P = virtual_camera_array.virtual_cameras[camera].projection;
+int FrameScalerSampleApp::GetTargetFrameRate()
+{
+#ifdef QDS
+	return impl->targetFrameRate;
+#else
+	return TARGET_FRAME_RATE;
+#endif
+}
 
-		auto view_translation = glm::make_vec3(ml_view_pos.values);
-		auto view_rotation = glm::make_quat(ml_view_rot.values);
-
-		Camera::Instance().V = glm::transpose(glm::translate(view_translation) * glm::toMat4(view_rotation));
-		Camera::Instance().P = glm::make_mat4(ml_P.matrix_colmajor);
-		Camera::Instance().ratio = viewport.w / viewport.h;
-
-		Draw(camera);
-
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		MLGraphicsSignalSyncObjectGL(impl->graphics_client, virtual_camera_array.virtual_cameras[camera].sync_object);
-	}
-	out_result = MLGraphicsEndFrame(impl->graphics_client, frame_handle);
-	if (MLResult_Ok != out_result) {
-		ML_LOG(Error, "MLGraphicsEndFrame complained: %d", out_result);
-	}
-
-	impl->graphics_context.swapBuffers();
+void FrameScalerSampleApp::SetTargetFrameRate(int targetFrameRate)
+{
+	impl->targetFrameRate = targetFrameRate;
 }
 
 bool FrameScalerSampleApp::InitContents()
@@ -316,7 +312,7 @@ bool FrameScalerSampleApp::InitContents()
 
 		auto model = new ModelObj();
 
-		model->Load(TARGET_MODEL_FILEPATH, "assets/models");
+		model->Load(TARGET_MODEL_FILEPATH, TARGET_MODEL_BASEPATH);
 		model->SetShaders(VS_FILE_PATH, FS_FILE_PATH);
 		model->SetPosition(glm::vec3(r*c, 0, r*s));
 		model->SetScale(glm::vec3(5.0f));
@@ -342,16 +338,4 @@ void FrameScalerSampleApp::DestroyContents()
 	}
 
 	impl->models.clear();
-}
-
-void FrameScalerSampleApp::Draw(int camera_number)
-{
-	for (auto* model : impl->models)
-		model->Update();
-
-	glClearColor(0.0, 0.0, 0.0, 0.0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	for (auto* model : impl->models)
-		model->Render();
 }

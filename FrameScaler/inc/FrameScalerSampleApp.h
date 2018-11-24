@@ -1,11 +1,11 @@
 #ifndef FRAMESCALERSAMPLEAPP_H_
 #define FRAMESCALERSAMPLEAPP_H_
 
-#include "glm/glm.hpp"
+#include "App.h"
 
 class FrameScalerSampleAppImpl;
 
-class FrameScalerSampleApp
+class FrameScalerSampleApp : public App
 {
 public:
 	FrameScalerSampleApp();
@@ -18,8 +18,10 @@ public:
 	void DestroyContents();
 
 	void Update(float dt);
-	void OnRender();
-	void Draw(int camera_number);
+	void OnRender(int cameraIndex);
+
+	int GetTargetFrameRate();
+	void SetTargetFrameRate(int targetFrameRate);
 
 private:
 	FrameScalerSampleAppImpl* impl = nullptr;

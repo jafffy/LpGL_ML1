@@ -2,6 +2,8 @@
 #define MODELOBJ_H_
 
 #include <string>
+#include <vector>
+
 #include "glm/glm.hpp"
 
 class ModelObjImpl;
@@ -24,6 +26,11 @@ public:
 	void SetPosition(glm::vec3 position);
 	void SetRotation(glm::vec3 rotation);
 	void SetScale(glm::vec3 scale);
+
+	void SetVisible(bool isVisible);
+	void SetReductionLevel(int n);
+
+	std::vector<glm::vec3> GetBoundingBox() const;
 
 private:
 	ModelObjImpl* impl = nullptr;

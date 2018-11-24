@@ -5,22 +5,30 @@
 
 #define QDS_DEPTH 10
 
+#define LOD
+
 // --------------------------
 
 #define TARGET_FRAME_RATE 60
 
-#define NUM_OBJECTS 1
+#define NUM_OBJECTS 12
 
-#define TARGET_MODEL_FILEPATH "assets/models/69K.obj"
+#define TARGET_ASSET_BASEPATH "assets/"
+#define TARGET_MODEL_BASEPATH TARGET_ASSET_BASEPATH "models/"
+#define TARGET_MODEL_FILEPATH TARGET_MODEL_BASEPATH "69K.obj"
+#define TARGET_MODEL_FILEPATH_REDUCED_1 TARGET_MODEL_BASEPATH "69K_1.obj"
+#define TARGET_MODEL_FILEPATH_REDUCED_2 TARGET_MODEL_BASEPATH "69K_2.obj"
 
 #define SHADING
 
+#define TARGET_SHADER_BASEPATH TARGET_ASSET_BASEPATH "shaders/"
+
 #ifdef SHADING
-#define VS_FILE_PATH "assets/shaders/normal.vert"
-#define FS_FILE_PATH "assets/shaders/normal.frag"
+#define VS_FILE_PATH TARGET_SHADER_BASEPATH "normal.vert"
+#define FS_FILE_PATH TARGET_SHADER_BASEPATH "normal.frag"
 #else
-#define VS_FILE_PATH "assets/shaders/basic3D.vert"
-#define FS_FILE_PATH "assets/shaders/basic3D.frag"
+#define VS_FILE_PATH TARGET_SHADER_BASEPATH "basic3D.vert"
+#define FS_FILE_PATH TARGET_SHADER_BASEPATH "basic3D.frag"
 #endif
 
 #endif // EXPERIMENT_H_

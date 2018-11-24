@@ -33,7 +33,7 @@
     <ClCompile Include="src\ShaderUtils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\qds.cpp">
+    <ClCompile Include="src\MLNativeWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -59,13 +59,16 @@
     <ClInclude Include="inc\Experiment.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\qds.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="inc\BoundingBox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="inc\Camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\MLNativeWindow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\App.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

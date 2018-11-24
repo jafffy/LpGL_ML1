@@ -11,11 +11,17 @@
     </ClCompile>
     <ClCompile Include="..\FrameScaler\src\ModelObj.cpp" />
     <ClCompile Include="..\FrameScaler\src\ShaderUtils.cpp" />
+    <ClCompile Include="Win32NativeWindow.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\FrameScaler\inc\ModelObj.h" />
     <ClInclude Include="..\FrameScaler\inc\ShaderUtils.h" />
     <ClInclude Include="..\FrameScaler\inc\tinyobjloader.h" />
     <ClInclude Include="..\FrameScaler\inc\Camera.h" />
+    <ClInclude Include="Win32NativeWindow.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

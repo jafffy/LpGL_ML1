@@ -210,19 +210,20 @@
     <ClCompile Include="src/FrameScaler.cpp" />
     <ClCompile Include="src\FrameScalerSampleApp.cpp" />
     <ClCompile Include="src\graphics_context_t.cpp" />
+    <ClCompile Include="src\MLNativeWindow.cpp" />
     <ClCompile Include="src\ModelObj.cpp" />
-    <ClCompile Include="src\qds.cpp" />
     <ClCompile Include="src\ShaderUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inc/FrameScaler.h" />
+    <ClInclude Include="inc\App.h" />
     <ClInclude Include="inc\BoundingBox.h" />
     <ClInclude Include="inc\Camera.h" />
     <ClInclude Include="inc\Experiment.h" />
     <ClInclude Include="inc\FrameScalerSampleApp.h" />
     <ClInclude Include="inc\graphics_context_t.h" />
     <ClInclude Include="inc\ModelObj.h" />
-    <ClInclude Include="inc\qds.h" />
+    <ClInclude Include="inc\MLNativeWindow.h" />
     <ClInclude Include="inc\ShaderUtils.h" />
     <ClInclude Include="inc\tinyobjloader.h" />
   </ItemGroup>
@@ -245,7 +246,7 @@
   </ItemGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties MLProjectMabuSyncTime="131872509326971285 (2018-11-21 오전 5:15:32 UTC)" />
+      <UserProperties MLProjectMabuSyncTime="131874492605530793 (2018-11-23 오후 12:21:00 UTC)" />
     </VisualStudio>
   </ProjectExtensions>
 </Project>

@@ -10,13 +10,14 @@
 // ---------------------------------------------------------------------
 // %BANNER_END%
 
+#include "MLNativeWindow.h"
 #include "FrameScalerSampleApp.h"
-#include "ModelObj.h"
 
 int main() {
 	FrameScalerSampleApp app;
+	MLNativeWindow nativeWindow(&app);
 
-	app.Start();
+	nativeWindow.Start();
 
   return 0;
 }

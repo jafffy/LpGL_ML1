@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LpGL", "LpGL\LpGL.vcxproj",
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LpGL_win32", "LpGL_win32\LpGL_win32.vcxproj", "{987B0979-1C65-45EA-B82F-424235DACD2C}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "echoclient", "..\..\echoclient\echoclient.vcxproj", "{012436BC-3C0B-4974-96F0-715C682E72EE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ML = Debug|ML
@@ -49,6 +51,16 @@ Global
 		{987B0979-1C65-45EA-B82F-424235DACD2C}.Release|x64.Build.0 = Release|x64
 		{987B0979-1C65-45EA-B82F-424235DACD2C}.Release|x86.ActiveCfg = Release|Win32
 		{987B0979-1C65-45EA-B82F-424235DACD2C}.Release|x86.Build.0 = Release|Win32
+		{012436BC-3C0B-4974-96F0-715C682E72EE}.Debug|ML.ActiveCfg = Debug|ML
+		{012436BC-3C0B-4974-96F0-715C682E72EE}.Debug|ML.Build.0 = Debug|ML
+		{012436BC-3C0B-4974-96F0-715C682E72EE}.Debug|x64.ActiveCfg = Debug|x64
+		{012436BC-3C0B-4974-96F0-715C682E72EE}.Debug|x64.Build.0 = Debug|x64
+		{012436BC-3C0B-4974-96F0-715C682E72EE}.Debug|x86.ActiveCfg = Debug|x64
+		{012436BC-3C0B-4974-96F0-715C682E72EE}.Release|ML.ActiveCfg = Release|ML
+		{012436BC-3C0B-4974-96F0-715C682E72EE}.Release|ML.Build.0 = Release|ML
+		{012436BC-3C0B-4974-96F0-715C682E72EE}.Release|x64.ActiveCfg = Release|x64
+		{012436BC-3C0B-4974-96F0-715C682E72EE}.Release|x64.Build.0 = Release|x64
+		{012436BC-3C0B-4974-96F0-715C682E72EE}.Release|x86.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

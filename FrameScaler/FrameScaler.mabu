@@ -9,10 +9,10 @@ OPTIONS = \
 SRCS = \
 	src/FrameScaler.cpp \
 	src/FrameScalerSampleApp.cpp \
+	src/MLNativeWindow.cpp \
 	src/ModelObj.cpp \
 	src/ShaderUtils.cpp \
-	src/graphics_context_t.cpp \
-	src/qds.cpp
+	src/graphics_context_t.cpp
 
 USES = \
 	OpenGL \
