@@ -1,7 +1,7 @@
 #ifndef EXPERIMENT_H_
 #define EXPERIMENT_H_
 
-#define CULLING
+//#define CULLING
 
 #define QDS_DEPTH 10
 
