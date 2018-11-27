@@ -64,6 +64,10 @@ public:
 
 	bool isCulled = true;
 	bool isVisible = true;
+	bool isPhysicalObject = false;
+
+	glm::vec3 velocity = glm::vec3(0.25f, 0.25f, 0);
+	glm::vec3 acceleration = glm::vec3(0, 0, 0);
 };
 
 ModelObj::ModelObj()
@@ -108,7 +112,6 @@ void ModelObj::Load(std::string path, std::string base_path)
 
 	impl->boundingBox.BuildGeometry();
 
-#ifdef LOD
 	{
 		tinyobj::attrib_t attrib;
 		std::vector<tinyobj::shape_t> shapes;
@@ -157,8 +160,6 @@ void ModelObj::Load(std::string path, std::string base_path)
 			}
 		}
 	}
-
-#endif
 }
 
 void ModelObj::SetShaders(std::string vertex_shader_path, std::string frag_shader_path)
@@ -236,6 +237,15 @@ void ModelObj::Destroy()
 
 void ModelObj::Update(float dt)
 {
+	if (impl->isPhysicalObject) {
+		static const glm::vec3 gravity(0, -0.16f, 0);
+
+		glm::vec3 acceleration = impl->acceleration + gravity;
+
+		impl->velocity = impl->velocity + acceleration * dt;
+		impl->position = impl->position + impl->velocity * dt;
+	}
+
 	glm::mat4 model = glm::translate(impl->position)
 		* glm::orientate4(impl->rotation)
 		* glm::scale(impl->scale);
@@ -324,6 +334,11 @@ void ModelObj::SetReductionLevel(int n) {
 		impl->isReduced1 = false;
 		impl->isReduced2 = false;
 	}
+}
+
+void ModelObj::SetIsPhysicalObject(bool isPhysicalObject)
+{
+	impl->isPhysicalObject = isPhysicalObject;
 }
 
 std::vector<glm::vec3> ModelObj::GetBoundingBox() const

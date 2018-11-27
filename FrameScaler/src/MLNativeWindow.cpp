@@ -244,7 +244,7 @@ int MLNativeWindow::Start()
   float elapsed_time = 0.0f;
 
   while (application_context.dummy_value) {
-	  OnRender(elapsed_time);
+	  OnRender(elapsed_time / 1000.0f);
 
 	  double target_frame_rate = impl->app->GetTargetFrameRate();
 	  auto last_time = std::chrono::steady_clock::now();

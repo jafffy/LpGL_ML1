@@ -17,7 +17,7 @@
 #include <ml_logging.h>
 #endif
 
-#define LOW
+#define HIGH
 #ifdef LOW
 static struct {
 	float level1 = 0.7f;
@@ -26,8 +26,8 @@ static struct {
 #endif
 #ifdef HIGH
 static struct {
-	float level1 = 0.4f;
-	float level2 = 0.2f;
+	float level1 = 0.2f;
+	float level2 = 0.1f;
 } threshold;
 #endif
 #ifdef ORIGIN
@@ -313,7 +313,8 @@ bool FrameScalerSampleApp::InitContents()
 		model->SetShaders(VS_FILE_PATH, FS_FILE_PATH);
 		model->SetScale(glm::vec3(5.0f));
 		model->SetPosition(glm::vec3(0, 0, -5.f));
-		model->SetVisible(false);
+		model->SetVisible(true);
+		model->SetIsPhysicalObject(true);
 
 		if (!model->Create())
 			return false;

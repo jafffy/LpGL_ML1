@@ -34,6 +34,8 @@ public:
 	bool IsVisible() const;
 	void SetReductionLevel(int n);
 
+	void SetIsPhysicalObject(bool isPhysicalObject);
+
 	std::vector<glm::vec3> GetBoundingBox() const;
 
 private:
