@@ -20,14 +20,18 @@ public:
 	bool Create();
 	void Destroy();
 
-	void Update();
+	void Update(float dt);
 	void Render();
 
 	void SetPosition(glm::vec3 position);
+	const glm::vec3& GetPosition() const;
+
 	void SetRotation(glm::vec3 rotation);
 	void SetScale(glm::vec3 scale);
 
+	void SetCulled(bool isCulled);
 	void SetVisible(bool isVisible);
+	bool IsVisible() const;
 	void SetReductionLevel(int n);
 
 	std::vector<glm::vec3> GetBoundingBox() const;

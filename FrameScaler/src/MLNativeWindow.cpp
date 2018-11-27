@@ -23,6 +23,7 @@
 #include <ml_perception.h>
 #include <ml_lifecycle.h>
 #include <ml_logging.h>
+#include <ml_input.h>
 #endif
 
 #include <chrono>
@@ -150,9 +151,12 @@ public:
 	MLHandle graphics_client = ML_INVALID_HANDLE;
 };
 
+static MLNativeWindowImpl* g_impl = nullptr;
+
 MLNativeWindow::MLNativeWindow(App* app)
 {
 	impl = new MLNativeWindowImpl(app);
+	g_impl = impl;
 }
 
 MLNativeWindow::~MLNativeWindow()
@@ -160,7 +164,17 @@ MLNativeWindow::~MLNativeWindow()
 	if (impl) {
 		delete impl;
 		impl = nullptr;
+		g_impl = nullptr;
 	}
+}
+
+static void on_button_down(uint8_t controller_id, MLInputControllerButton button, void *data)
+{
+	if (!g_impl) {
+		return;
+	}
+
+	g_impl->app->OnPressed();
 }
 
 int MLNativeWindow::Start()
@@ -177,6 +191,15 @@ int MLNativeWindow::Start()
     ML_LOG(Error, "%s: Failed to initialize lifecycle.", application_name);
     return -1;
   }
+
+  MLHandle inputHandle;
+  MLInputConfiguration inputConfig;
+  MLInputCreate(&inputConfig, &inputHandle);
+
+  MLInputControllerCallbacks inputcontroller_callbacks = {};
+  inputcontroller_callbacks.on_button_down = on_button_down;
+
+  MLInputSetControllerCallbacks(inputHandle, &inputcontroller_callbacks, nullptr);
 
   // initialize perception system
   MLPerceptionSettings perception_settings;
@@ -218,13 +241,14 @@ int MLNativeWindow::Start()
   ML_LOG(Info, "%s: Start loop.", application_name);
 
   auto start = std::chrono::steady_clock::now();
+  float elapsed_time = 0.0f;
 
   while (application_context.dummy_value) {
-	  OnRender();
+	  OnRender(elapsed_time);
 
 	  double target_frame_rate = impl->app->GetTargetFrameRate();
 	  auto last_time = std::chrono::steady_clock::now();
-	  auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(last_time - start).count();
+	  elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(last_time - start).count();
 	  start = last_time;
 
 	  auto expected_time_ms = 1000.0 / target_frame_rate;
@@ -251,7 +275,7 @@ int MLNativeWindow::Start()
   return 0;
 }
 
-void MLNativeWindow::OnRender()
+void MLNativeWindow::OnRender(float dt)
 {
 	MLGraphicsFrameParams frame_params;
 
@@ -287,12 +311,15 @@ void MLNativeWindow::OnRender()
 		auto view_translation = glm::make_vec3(ml_view_pos.values);
 		auto view_rotation = glm::make_quat(ml_view_rot.values);
 
+		Camera::Instance().position = view_translation;
+		Camera::Instance().rotation = view_rotation;
+
 		Camera::Instance().V = glm::transpose(glm::translate(view_translation) * glm::toMat4(view_rotation));
 		Camera::Instance().P = glm::make_mat4(ml_P.matrix_colmajor);
 		Camera::Instance().ratio = viewport.w / viewport.h;
 		Camera::Instance().P_for_LpGL = glm::perspectiveFov(glm::pi<float>() / 2, viewport.w, viewport.h, 0.1f, 100.0f);
 
-		impl->app->OnRender(camera);
+		impl->app->OnRender(camera, dt);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -304,6 +331,5 @@ void MLNativeWindow::OnRender()
 	}
 
 	impl->graphics_context.swapBuffers();
-
 }
 

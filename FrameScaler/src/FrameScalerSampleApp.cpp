@@ -191,15 +191,18 @@ void FrameScalerSampleApp::Cleanup()
 
 void FrameScalerSampleApp::Update(float dt)
 {
+	for (auto* model : impl->models) {
+		if (model->IsVisible()) {
+			const auto& p = model->GetPosition();
 
+			model->Update(dt);
+		}
+	}
 }
 
-void FrameScalerSampleApp::OnRender(int cameraIndex)
-{
-	for (auto* model : impl->models)
-		model->Update();
-
-#ifdef QDS
+void FrameScalerSampleApp::OnRender(int cameraIndex, float dt)
+{ 
+	Update(dt);
 
 	if (cameraIndex == 0) {
 		std::vector<const BoundingBox2D*> bbs;
@@ -216,11 +219,11 @@ void FrameScalerSampleApp::OnRender(int cameraIndex)
 			if (boundingBox2D->Min.y > 1 || boundingBox2D->Max.y < -1
 				|| boundingBox2D->Min.x > 1 || boundingBox2D->Max.x < -1)
 			{
-				model->SetVisible(false);
+				model->SetCulled(false);
 			}
 			else
 			{
-				model->SetVisible(true);
+				model->SetCulled(true);
 				bbs.push_back(boundingBox2D);
 
 				if (boundingBox2D->Min.y > 0.50 || boundingBox2D->Max.y < -0.50
@@ -277,7 +280,6 @@ void FrameScalerSampleApp::OnRender(int cameraIndex)
 
 		lastQuadTree = quadTree;
 	}
-#endif
 
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -305,17 +307,13 @@ bool FrameScalerSampleApp::InitContents()
 	int n = NUM_OBJECTS;
 
 	for (int i = 0; i < n; ++i) {
-		double t = i / (double)n;
-		double r = 5.0f;
-		float s = sinf(t * M_PI / 4);
-		float c = cosf(t * M_PI / 4);
-
 		auto model = new ModelObj();
 
 		model->Load(TARGET_MODEL_FILEPATH, TARGET_MODEL_BASEPATH);
 		model->SetShaders(VS_FILE_PATH, FS_FILE_PATH);
-		model->SetPosition(glm::vec3(r*c, 0, r*s));
 		model->SetScale(glm::vec3(5.0f));
+		model->SetPosition(glm::vec3(0, 0, -5.f));
+		model->SetVisible(false);
 
 		if (!model->Create())
 			return false;
@@ -338,4 +336,11 @@ void FrameScalerSampleApp::DestroyContents()
 	}
 
 	impl->models.clear();
+}
+
+void FrameScalerSampleApp::OnPressed()
+{
+	for (auto* model : impl->models) {
+		model->GetBoundingBox();
+	}
 }

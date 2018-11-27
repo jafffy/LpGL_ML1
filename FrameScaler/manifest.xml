@@ -7,6 +7,7 @@
 		ml:visible_name="FrameScaler"
 		ml:sdk_version="1.0">
     <uses-privilege ml:name="LowLatencyLightwear" />
+    <uses-privilege ml:name="ControllerPose" />
 		<component
 			ml:name=".fullscreen"
 			ml:visible_name="FrameScaler"

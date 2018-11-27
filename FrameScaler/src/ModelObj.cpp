@@ -62,6 +62,7 @@ public:
 
 	BoundingBox3D boundingBox;
 
+	bool isCulled = true;
 	bool isVisible = true;
 };
 
@@ -233,7 +234,7 @@ void ModelObj::Destroy()
 	glDeleteProgram(impl->program_id);
 }
 
-void ModelObj::Update()
+void ModelObj::Update(float dt)
 {
 	glm::mat4 model = glm::translate(impl->position)
 		* glm::orientate4(impl->rotation)
@@ -245,15 +246,12 @@ void ModelObj::Update()
 
 void ModelObj::Render()
 {
-#ifdef QDS
-	if (!impl->isVisible)
+	if (!impl->isVisible || !impl->isCulled)
 		return;
-#endif
 
 	GLuint target_vaid = impl->vertex_array_id;
 	unsigned int target_num_vertices = impl->vertices.size();
 
-#ifdef QDS
 	if (impl->isReduced2) {
 		target_vaid = impl->vertex_array_id_reduced_2;
 		target_num_vertices = impl->vertices_reduced_2.size();
@@ -262,7 +260,6 @@ void ModelObj::Render()
 		target_vaid = impl->vertex_array_id_reduced_1;
 		target_num_vertices = impl->vertices_reduced_1.size();
 	}
-#endif
 
 	glUseProgram(impl->program_id);
 
@@ -284,6 +281,11 @@ void ModelObj::SetPosition(glm::vec3 position)
 	impl->position = position;
 }
 
+const glm::vec3& ModelObj::GetPosition() const
+{
+	return impl->position;
+}
+
 void ModelObj::SetRotation(glm::vec3 rotation)
 {
 	impl->rotation = rotation;
@@ -294,9 +296,19 @@ void ModelObj::SetScale(glm::vec3 scale)
 	impl->scale = scale;
 }
 
+void ModelObj::SetCulled(bool isCulled)
+{
+	impl->isCulled = isCulled;
+}
+
 void ModelObj::SetVisible(bool isVisible)
 {
 	impl->isVisible = isVisible;
+}
+
+bool ModelObj::IsVisible() const
+{
+	return impl->isVisible;
 }
 
 void ModelObj::SetReductionLevel(int n) {

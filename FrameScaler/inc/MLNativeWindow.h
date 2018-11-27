@@ -13,7 +13,7 @@ public:
 
 	int Start();
 
-	void OnRender();
+	void OnRender(float dt);
 
 private:
 	MLNativeWindowImpl* impl = nullptr;

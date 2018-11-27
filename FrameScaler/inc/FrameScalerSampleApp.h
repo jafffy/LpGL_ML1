@@ -18,10 +18,12 @@ public:
 	void DestroyContents();
 
 	void Update(float dt);
-	void OnRender(int cameraIndex);
+	void OnRender(int cameraIndex, float dt);
 
 	int GetTargetFrameRate();
 	void SetTargetFrameRate(int targetFrameRate);
+
+	void OnPressed();
 
 private:
 	FrameScalerSampleAppImpl* impl = nullptr;
