@@ -210,6 +210,7 @@
     <ClCompile Include="src/FrameScaler.cpp" />
     <ClCompile Include="src\FrameScalerSampleApp.cpp" />
     <ClCompile Include="src\graphics_context_t.cpp" />
+    <ClCompile Include="src\lodepng.cpp" />
     <ClCompile Include="src\MeshLoader.cpp" />
     <ClCompile Include="src\MLNativeWindow.cpp" />
     <ClCompile Include="src\ModelObj.cpp" />
@@ -221,10 +222,10 @@
     <ClInclude Include="inc\App.h" />
     <ClInclude Include="inc\BoundingBox.h" />
     <ClInclude Include="inc\Camera.h" />
-    <ClInclude Include="inc\CImg.h" />
     <ClInclude Include="inc\Experiment.h" />
     <ClInclude Include="inc\FrameScalerSampleApp.h" />
     <ClInclude Include="inc\graphics_context_t.h" />
+    <ClInclude Include="inc\lodepng.h" />
     <ClInclude Include="inc\MeshLoader.h" />
     <ClInclude Include="inc\ModelObj.h" />
     <ClInclude Include="inc\MLNativeWindow.h" />
@@ -245,6 +246,8 @@
     <None Include="shaders\normal.vert" />
     <None Include="shaders\phong.frag" />
     <None Include="shaders\phong.vert" />
+    <None Include="shaders\texture.frag" />
+    <None Include="shaders\texture.vert" />
     <None Include="texture.comp" />
   </ItemGroup>
   <ItemGroup>
@@ -252,7 +255,7 @@
   </ItemGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties MLProjectMabuSyncTime="131878612923098571 (2018-11-28 오전 6:48:12 UTC)" />
+      <UserProperties MLProjectMabuSyncTime="131878668026806929 (2018-11-28 오전 8:20:02 UTC)" />
     </VisualStudio>
   </ProjectExtensions>
 </Project>

@@ -42,6 +42,9 @@
     <ClCompile Include="src\Quad.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\lodepng.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inc/FrameScaler.h">
@@ -83,7 +86,7 @@
     <ClInclude Include="inc\Quad.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\CImg.h">
+    <ClInclude Include="inc\lodepng.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -118,5 +121,11 @@
       <Filter>shaders</Filter>
     </None>
     <None Include="texture.comp" />
+    <None Include="shaders\texture.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\texture.vert">
+      <Filter>shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

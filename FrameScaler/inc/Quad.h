@@ -11,7 +11,6 @@ public:
 
 	void InitContents();
 	void DestroyContents();
-	void SetTexture(const char* path);
 
 	void Draw();
 

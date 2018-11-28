@@ -481,6 +481,7 @@ bool FrameScalerSampleApp::InitContents()
 
 		model->Load(TARGET_MODEL_FILEPATH, TARGET_MODEL_FILEPATH_REDUCED_1, TARGET_MODEL_FILEPATH_REDUCED_2, TARGET_MODEL_BASEPATH);
 		model->SetShaders(VS_FILE_PATH, FS_FILE_PATH);
+
 		model->SetScale(glm::vec3(0.25f));
 		model->SetPosition(glm::vec3(initialX, 0, -5.f + error_Z));
 		model->SetRotation(glm::vec3(0, 0, 0));
@@ -528,8 +529,8 @@ void FrameScalerSampleApp::OnPressed()
 			glm::vec4 result = Camera::Instance().P_for_LpGL * (Camera::Instance().V_for_LpGL * glm::vec4(v, 1.0f));
 			boundingBox2D->AddPoint(result.x, result.y);
 
-			if (!(boundingBox2D->Min.y > 0.20 || boundingBox2D->Max.y < -0.20
-				|| boundingBox2D->Min.x > 0.20 || boundingBox2D->Max.x < -0.20)) {
+			if (!(boundingBox2D->Min.y > 0.01 || boundingBox2D->Max.y < -0.01
+				|| boundingBox2D->Min.x > 0.01 || boundingBox2D->Max.x < -0.01)) {
 
 				if (maxDistance < result.z) {
 					closestModel = model;

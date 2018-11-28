@@ -164,9 +164,9 @@ bool ModelObj::Create()
 	impl->program_id = LoadShaders(
 		impl->vertex_shader_path.c_str(),
 		impl->frag_shader_path.c_str());
-
 	glGenVertexArrays(1, &impl->vertex_array_id);
 	glBindVertexArray(impl->vertex_array_id);
+
 
 	glGenBuffers(1, &impl->vertex_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, impl->vertex_buffer);
@@ -176,6 +176,7 @@ bool ModelObj::Create()
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3) * 2, (void*)0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3) * 2, (void*)sizeof(glm::vec3));
+
 
 	glGenVertexArrays(1, &impl->vertex_array_id_reduced_1);
 	glBindVertexArray(impl->vertex_array_id_reduced_1);

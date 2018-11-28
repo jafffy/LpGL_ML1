@@ -4,4 +4,6 @@ DATAS = \
 	shaders/basic3D.vert : assets/shaders/basic3D.vert \
 	shaders/basic3D.frag : assets/shaders/basic3D.frag \
 	shaders/normal.vert : assets/shaders/normal.vert \
-	shaders/normal.frag : assets/shaders/normal.frag
+	shaders/normal.frag : assets/shaders/normal.frag \
+	shaders/texture.vert : assets/shaders/texture.vert \
+	shaders/texture.frag : assets/shaders/texture.frag

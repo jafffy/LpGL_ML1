@@ -14,7 +14,8 @@ SRCS = \
 	src/ModelObj.cpp \
 	src/Quad.cpp \
 	src/ShaderUtils.cpp \
-	src/graphics_context_t.cpp
+	src/graphics_context_t.cpp \
+	src/lodepng.cpp
 
 USES = \
 	OpenGL \
