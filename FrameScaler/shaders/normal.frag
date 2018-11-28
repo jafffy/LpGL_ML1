@@ -1,16 +1,17 @@
 #version 330 core
 
 in vec3 normal_cameraspace;
-out vec3 EyeDirection_cameraspace;
+in vec3 EyeDirection_cameraspace;
+in vec3 vertex_color;
 
-out vec3 color;
+out vec3 out_color;
 uniform mat4 M;
 uniform mat4 V;
 
 void main()
 {
 	vec3 LightColor = vec3(1, 1, 1);
-	float LightPower = 50.0f;
+	float LightPower = 0.5f;
 
 	vec3 MaterialDiffuseColor = vec3(1, 1, 1);
 	vec3 MaterialAmbientColor = vec3(0.1, 0.1, 0.1) * MaterialDiffuseColor;
@@ -24,7 +25,7 @@ void main()
 	vec3 R = reflect(-l, n);
 	float cosAlpha = clamp(dot(E, R), 0, 1);
 
-	color = MaterialAmbientColor + 
+	out_color = MaterialAmbientColor + 
 		MaterialDiffuseColor * LightColor * LightPower * cosTheta +
 		MaterialSpecularColor * LightColor * LightPower * pow(cosAlpha, 5);
 }

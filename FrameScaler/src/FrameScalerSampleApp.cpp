@@ -10,6 +10,9 @@
 #include <vector>
 #include <functional>
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include "glm/gtx/intersect.hpp"
+
 #ifndef _WIN32
 #include <GLES3/gl3.h>
 #include <GLES3/gl3ext.h>
@@ -195,13 +198,36 @@ void FrameScalerSampleApp::Update(float dt)
 		if (model->IsVisible()) {
 			const auto& p = model->GetPosition();
 
+			if (p.y < -1) {
+				bool isLeft = random() % 2 == 0;
+
+				float initialX = 0.0f;
+				glm::vec3 initialVelocity;
+
+				float error_X = random() / (double)RAND_MAX * 0.05;
+				float error_Y = random() / (double)RAND_MAX * 0.25f;
+				float error_Z = random() / (double)RAND_MAX * 2.0f;
+
+				if (isLeft) {
+					initialX = -1.0f;
+					initialVelocity = glm::vec3(0.25f + error_X, 0.25f + error_Y, 0);
+				}
+				else {
+					initialX = 1.0f;
+					initialVelocity = glm::vec3(-0.25f + error_X, 0.25f + error_Y, 0);
+				}
+
+				model->SetPosition(glm::vec3(initialX, 0, -5.f + error_Z));
+				model->SetInitialVelocity(initialVelocity);
+			}
+
 			model->Update(dt);
 		}
 	}
 }
 
 void FrameScalerSampleApp::OnRender(int cameraIndex, float dt)
-{ 
+{
 	Update(dt);
 
 	if (cameraIndex == 0) {
@@ -229,10 +255,12 @@ void FrameScalerSampleApp::OnRender(int cameraIndex, float dt)
 				if (boundingBox2D->Min.y > 0.50 || boundingBox2D->Max.y < -0.50
 					|| boundingBox2D->Min.x > 0.50 || boundingBox2D->Max.x < -0.50) {
 					model->SetReductionLevel(2);
-				} else if (boundingBox2D->Min.y > 0.25 || boundingBox2D->Max.y < -0.25
+				}
+				else if (boundingBox2D->Min.y > 0.25 || boundingBox2D->Max.y < -0.25
 					|| boundingBox2D->Min.x > 0.25 || boundingBox2D->Max.x < -0.25) {
 					model->SetReductionLevel(1);
-				} else {
+				}
+				else {
 					model->SetReductionLevel(0);
 				}
 			}
@@ -243,8 +271,10 @@ void FrameScalerSampleApp::OnRender(int cameraIndex, float dt)
 		if (lastQuadTree) {
 			float dynamicScore = GetDynamicScoreBasedOnQuadtree(lastQuadTree->rootNode, quadTree->rootNode);
 
+#ifdef LOG_DYNAMIC_SCORE
 			if (dynamicScore > 0)
 				ML_LOG(Info, "dynamic score: %f\n", dynamicScore);
+#endif // LOG_DYNAMIC_SCORE
 
 			if (GetTargetFrameRate() > 60 - 1) {
 				if (dynamicScore < threshold.level1) {
@@ -290,11 +320,7 @@ void FrameScalerSampleApp::OnRender(int cameraIndex, float dt)
 
 int FrameScalerSampleApp::GetTargetFrameRate()
 {
-#ifdef QDS
 	return impl->targetFrameRate;
-#else
-	return TARGET_FRAME_RATE;
-#endif
 }
 
 void FrameScalerSampleApp::SetTargetFrameRate(int targetFrameRate)
@@ -306,15 +332,41 @@ bool FrameScalerSampleApp::InitContents()
 {
 	int n = NUM_OBJECTS;
 
+	srand(time(0));
+
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+	glEnable(GL_CULL_FACE);
+
 	for (int i = 0; i < n; ++i) {
 		auto model = new ModelObj();
 
-		model->Load(TARGET_MODEL_FILEPATH, TARGET_MODEL_BASEPATH);
+		bool isLeft = random() % 2 == 0;
+
+		float initialX = 0.0f;
+		glm::vec3 initialVelocity;
+
+		float error_X = random() / (double)RAND_MAX * 0.05;
+		float error_Y = random() / (double)RAND_MAX * 0.05f;
+		float error_Z = random() / (double)RAND_MAX * 2.0f;
+
+		if (isLeft) {
+			initialX = -1.0f;
+			initialVelocity = glm::vec3(0.25f + error_X, 0.25f + error_Y, 0);
+		}
+		else {
+			initialX = 1.0f;
+			initialVelocity = glm::vec3(-0.25f + error_X, 0.25f + error_Y, 0);
+		}
+
+		model->Load(TARGET_MODEL_FILEPATH, TARGET_MODEL_FILEPATH_REDUCED_1, TARGET_MODEL_FILEPATH_REDUCED_2, TARGET_MODEL_BASEPATH);
 		model->SetShaders(VS_FILE_PATH, FS_FILE_PATH);
-		model->SetScale(glm::vec3(5.0f));
-		model->SetPosition(glm::vec3(0, 0, -5.f));
+		model->SetScale(glm::vec3(1.0f));
+		model->SetPosition(glm::vec3(initialX, 0, -5.f + error_Z));
+		model->SetRotation(glm::vec3(0, 0, 0));
 		model->SetVisible(true);
 		model->SetIsPhysicalObject(true);
+		model->SetInitialVelocity(initialVelocity);
 
 		if (!model->Create())
 			return false;
@@ -341,7 +393,49 @@ void FrameScalerSampleApp::DestroyContents()
 
 void FrameScalerSampleApp::OnPressed()
 {
+	ModelObj* closestModel = nullptr;
+	float maxDistance = -FLT_MAX;
+
 	for (auto* model : impl->models) {
-		model->GetBoundingBox();
+		std::vector<glm::vec3> boundingVertices = model->GetBoundingBox();
+		auto boundingBox2D = new BoundingBox2D();
+
+		for (const auto& v : boundingVertices) {
+			glm::vec4 result = Camera::Instance().P_for_LpGL * (Camera::Instance().V * glm::vec4(v, 1.0f));
+			boundingBox2D->AddPoint(result.x, result.y);
+
+			if (!(boundingBox2D->Min.y > 0.10 || boundingBox2D->Max.y < -0.10
+				|| boundingBox2D->Min.x > 0.10 || boundingBox2D->Max.x < -0.10)) {
+
+				if (maxDistance < result.z) {
+					closestModel = model;
+					maxDistance = result.z;
+				}
+			}
+		}
 	}
+
+	if (!closestModel)
+		return;
+
+	bool isLeft = random() % 2 == 0;
+
+	float initialX = 0.0f;
+	glm::vec3 initialVelocity;
+
+	float error_X = random() / (double)RAND_MAX * 0.05;
+	float error_Y = random() / (double)RAND_MAX * 0.25f;
+	float error_Z = random() / (double)RAND_MAX * 2.0f;
+
+	if (isLeft) {
+		initialX = -1.0f;
+		initialVelocity = glm::vec3(0.25f + error_X, 0.25f + error_Y, 0);
+	}
+	else {
+		initialX = 1.0f;
+		initialVelocity = glm::vec3(-0.25f + error_X, 0.25f + error_Y, 0);
+	}
+
+	closestModel->SetPosition(glm::vec3(initialX, 0, -5.f + error_Z));
+	closestModel->SetInitialVelocity(initialVelocity);
 }

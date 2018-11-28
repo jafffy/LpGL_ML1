@@ -12,4 +12,11 @@ DATAS = \
 	models/277K.obj : assets/models/277K.obj \
 	models/277K.mtl : assets/models/277K.mtl \
 	models/555K.obj : assets/models/555K.obj \
-	models/555K.mtl : assets/models/555K.mtl
+	models/555K.mtl : assets/models/555K.mtl \
+	models/box.obj : assets/models/box.obj \
+	models/box.mtl : assets/models/box.mtl \
+	models/sphere.obj : assets/models/sphere.obj \
+	models/sphere.mtl : assets/models/sphere.mtl \
+	models/standard_sphere.obj : assets/models/standard_sphere.obj \
+	models/standard_sphere.mtl : assets/models/standard_sphere.mtl
+

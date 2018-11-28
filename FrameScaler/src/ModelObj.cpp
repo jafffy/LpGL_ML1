@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <cfloat>
+#include <functional>
 
 #ifndef _WIN32
 #include <ml_logging.h>
@@ -19,6 +20,7 @@
 #include "glm/gtc/type_ptr.hpp"
 #include "glm/gtx/transform.hpp"
 #include "glm/gtx/euler_angles.hpp"
+#include "glm/gtx/intersect.hpp"
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tinyobjloader.h"
@@ -66,8 +68,13 @@ public:
 	bool isVisible = true;
 	bool isPhysicalObject = false;
 
-	glm::vec3 velocity = glm::vec3(0.25f, 0.25f, 0);
+	glm::vec3 velocity = glm::vec3(0, 0, 0);
 	glm::vec3 acceleration = glm::vec3(0, 0, 0);
+
+	glm::vec3 color = glm::vec3(1.0f, 1.0f, 1.0f);
+	GLuint color_id;
+
+	BoundingSphere boundingSphere;
 };
 
 ModelObj::ModelObj()
@@ -83,7 +90,7 @@ ModelObj::~ModelObj()
 	}
 }
 
-void ModelObj::Load(std::string path, std::string base_path)
+static void model_load(std::string path, std::string base_path, std::function<void (const glm::vec3&, const glm::vec3&)> callback)
 {
 	tinyobj::attrib_t attrib;
 	std::vector<tinyobj::shape_t> shapes;
@@ -94,72 +101,56 @@ void ModelObj::Load(std::string path, std::string base_path)
 	bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, path.c_str(), base_path.c_str());
 
 	for (auto shape : shapes) {
-		for (auto idx : shape.mesh.indices) {
-			float x = attrib.vertices[3 * idx.vertex_index + 0];
-			float y = attrib.vertices[3 * idx.vertex_index + 1];
-			float z = attrib.vertices[3 * idx.vertex_index + 2];
+		size_t index_offset = 0;
 
-			float nx = attrib.normals[3 * idx.normal_index + 0];
-			float ny = attrib.normals[3 * idx.normal_index + 1];
-			float nz = attrib.normals[3 * idx.normal_index + 2];
+		for (auto f = 0; f < shape.mesh.num_face_vertices.size(); ++f) {
+			auto fnum = shape.mesh.num_face_vertices[f];
 
-			impl->vertices.push_back(glm::vec3(x, y, z));
-			impl->vertices.push_back(glm::vec3(nx, ny, nz));
+			for (int i = 0; i < fnum; ++i) {
+				auto idx = shape.mesh.indices[index_offset + i];
 
-			impl->boundingBox.AddPoint(glm::vec3(x, y, z));
+				float x = attrib.vertices[3 * idx.vertex_index + 0];
+				float y = attrib.vertices[3 * idx.vertex_index + 1];
+				float z = attrib.vertices[3 * idx.vertex_index + 2];
+
+				float nx = attrib.normals[3 * idx.normal_index + 0];
+				float ny = attrib.normals[3 * idx.normal_index + 1];
+				float nz = attrib.normals[3 * idx.normal_index + 2];
+
+				callback(glm::vec3(x, y, z), glm::vec3(nx, ny, nz));
+			}
+
+			index_offset += fnum;
 		}
 	}
+}
+
+void ModelObj::Load(std::string path, std::string reduced1_path, std::string reduced2_path, std::string base_path)
+{
+	model_load(path, base_path,
+		[&](const glm::vec3& pos, const glm::vec3& normal) {
+		impl->vertices.push_back(pos);
+		impl->vertices.push_back(normal);
+
+		impl->boundingBox.AddPoint(pos);
+	});
 
 	impl->boundingBox.BuildGeometry();
 
-	{
-		tinyobj::attrib_t attrib;
-		std::vector<tinyobj::shape_t> shapes;
-		std::vector<tinyobj::material_t> materials;
+	impl->boundingSphere.position = (impl->boundingBox.Max + impl->boundingBox.Min) * 0.5f;
+	impl->boundingSphere.radius = glm::length(impl->boundingBox.Max - impl->boundingBox.Min) * 0.5f;
 
-		std::string warn;
-		std::string err;
-		bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, TARGET_MODEL_FILEPATH_REDUCED_1, base_path.c_str());
+	model_load(reduced1_path, base_path,
+		[&](const glm::vec3& pos, const glm::vec3& normal) {
+		impl->vertices_reduced_1.push_back(pos);
+		impl->vertices_reduced_1.push_back(normal);
+	});
+	model_load(reduced2_path, base_path,
+		[&](const glm::vec3& pos, const glm::vec3& normal) {
+		impl->vertices_reduced_2.push_back(pos);
+		impl->vertices_reduced_2.push_back(normal);
+	});
 
-		for (auto shape : shapes) {
-			for (auto idx : shape.mesh.indices) {
-				float x = attrib.vertices[3 * idx.vertex_index + 0];
-				float y = attrib.vertices[3 * idx.vertex_index + 1];
-				float z = attrib.vertices[3 * idx.vertex_index + 2];
-
-				float nx = attrib.normals[3 * idx.normal_index + 0];
-				float ny = attrib.normals[3 * idx.normal_index + 1];
-				float nz = attrib.normals[3 * idx.normal_index + 2];
-
-				impl->vertices_reduced_1.push_back(glm::vec3(x, y, z));
-				impl->vertices_reduced_1.push_back(glm::vec3(nx, ny, nz));
-			}
-		}
-	}
-	{
-		tinyobj::attrib_t attrib;
-		std::vector<tinyobj::shape_t> shapes;
-		std::vector<tinyobj::material_t> materials;
-
-		std::string warn;
-		std::string err;
-		bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, TARGET_MODEL_FILEPATH_REDUCED_2, base_path.c_str());
-
-		for (auto shape : shapes) {
-			for (auto idx : shape.mesh.indices) {
-				float x = attrib.vertices[3 * idx.vertex_index + 0];
-				float y = attrib.vertices[3 * idx.vertex_index + 1];
-				float z = attrib.vertices[3 * idx.vertex_index + 2];
-
-				float nx = attrib.normals[3 * idx.normal_index + 0];
-				float ny = attrib.normals[3 * idx.normal_index + 1];
-				float nz = attrib.normals[3 * idx.normal_index + 2];
-
-				impl->vertices_reduced_2.push_back(glm::vec3(x, y, z));
-				impl->vertices_reduced_2.push_back(glm::vec3(nx, ny, nz));
-			}
-		}
-	}
 }
 
 void ModelObj::SetShaders(std::string vertex_shader_path, std::string frag_shader_path)
@@ -217,6 +208,7 @@ bool ModelObj::Create()
 	impl->matrix_id = glGetUniformLocation(impl->program_id, "MVP");
 	impl->M_id = glGetUniformLocation(impl->program_id, "M");
 	impl->V_id = glGetUniformLocation(impl->program_id, "V");
+	impl->color_id = glGetUniformLocation(impl->color_id, "color");
 
 	glUseProgram(0);
 
@@ -276,6 +268,7 @@ void ModelObj::Render()
 	glUniformMatrix4fv(impl->matrix_id, 1, GL_FALSE, glm::value_ptr(impl->MVP));
 	glUniformMatrix4fv(impl->M_id, 1, GL_FALSE, glm::value_ptr(impl->M));
 	glUniformMatrix4fv(impl->V_id, 1, GL_FALSE, glm::value_ptr(impl->V));
+	glUniform3fv(impl->color_id, 1, glm::value_ptr(impl->color));
 
 	glBindVertexArray(target_vaid);
 
@@ -341,6 +334,11 @@ void ModelObj::SetIsPhysicalObject(bool isPhysicalObject)
 	impl->isPhysicalObject = isPhysicalObject;
 }
 
+void ModelObj::SetInitialVelocity(const glm::vec3& v0)
+{
+	impl->velocity = v0;
+}
+
 std::vector<glm::vec3> ModelObj::GetBoundingBox() const
 {
 	std::vector<glm::vec3> output;
@@ -351,4 +349,24 @@ std::vector<glm::vec3> ModelObj::GetBoundingBox() const
 	}
 
 	return output;
+}
+
+BoundingSphere ModelObj::GetBoundingSphere() const
+{
+	BoundingSphere boundingSphereForReturn;
+
+	boundingSphereForReturn.position = impl->position;
+	boundingSphereForReturn.radius = impl->boundingSphere.radius * impl->scale.x;
+
+	return boundingSphereForReturn;
+}
+
+glm::vec3 ModelObj::GetColor() const
+{
+	return impl->color;
+}
+
+void ModelObj::SetColor(const glm::vec3& color)
+{
+	impl->color = color;
 }

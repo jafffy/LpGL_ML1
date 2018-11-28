@@ -8,13 +8,20 @@
 
 class ModelObjImpl;
 
+class BoundingSphere
+{
+public:
+	float radius;
+	glm::vec3 position;
+};
+
 class ModelObj
 {
 public:
 	ModelObj();
 	~ModelObj();
 
-	void Load(std::string path, std::string base_path);
+	void Load(std::string path, std::string reduced1_path, std::string reduced2_path, std::string base_path);
 	void SetShaders(std::string vertex_shader_path, std::string frag_shader_path);
 
 	bool Create();
@@ -35,8 +42,13 @@ public:
 	void SetReductionLevel(int n);
 
 	void SetIsPhysicalObject(bool isPhysicalObject);
+	void SetInitialVelocity(const glm::vec3& v0);
 
 	std::vector<glm::vec3> GetBoundingBox() const;
+	BoundingSphere GetBoundingSphere() const;
+
+	glm::vec3 GetColor() const;
+	void SetColor(const glm::vec3& color);
 
 private:
 	ModelObjImpl* impl = nullptr;
