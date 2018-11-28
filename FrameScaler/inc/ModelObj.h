@@ -50,6 +50,8 @@ public:
 	glm::vec3 GetColor() const;
 	void SetColor(const glm::vec3& color);
 
+	void Reset(float position_weight, float dynamics);
+
 private:
 	ModelObjImpl* impl = nullptr;
 };

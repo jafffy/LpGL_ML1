@@ -75,6 +75,8 @@ public:
 	GLuint color_id;
 
 	BoundingSphere boundingSphere;
+
+	float dynamics = 1.0f;
 };
 
 ModelObj::ModelObj()
@@ -236,7 +238,7 @@ void ModelObj::Update(float dt)
 		glm::vec3 acceleration = impl->acceleration + gravity;
 
 		impl->velocity = impl->velocity + acceleration * dt;
-		impl->position = impl->position + impl->velocity * dt;
+		impl->position = impl->position + impl->velocity * dt * impl->dynamics;
 	}
 
 	glm::mat4 model = glm::translate(impl->position)
@@ -370,4 +372,33 @@ glm::vec3 ModelObj::GetColor() const
 void ModelObj::SetColor(const glm::vec3& color)
 {
 	impl->color = color;
+}
+
+void ModelObj::Reset(float position_weight, float dynamics)
+{
+	if (!impl->isPhysicalObject)
+		return;
+
+	bool isLeft = random() / (double)RAND_MAX < position_weight;
+
+	float initialX = 0.0f;
+	glm::vec3 initialVelocity;
+
+	float error_X = random() / (double)RAND_MAX * 0.05;
+	float error_Y = random() / (double)RAND_MAX * 0.25f;
+	float error_Z = random() / (double)RAND_MAX * 2.0f;
+
+	if (isLeft) {
+		initialX = -INITIAL_X;
+		initialVelocity = glm::vec3(0.25f + error_X, 0.25f + error_Y, 0);
+	}
+	else {
+		initialX = INITIAL_X;
+		initialVelocity = glm::vec3(-0.25f + error_X, 0.25f + error_Y, 0);
+	}
+
+	SetPosition(glm::vec3(initialX, 0, -5.f + error_Z));
+	SetInitialVelocity(initialVelocity);
+
+	impl->dynamics = dynamics;
 }

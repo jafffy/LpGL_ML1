@@ -10,12 +10,15 @@
 
 // #define LOG_DYNAMIC_SCORE
 
-#define INITIAL_X 1.5
+#define INITIAL_X 1.75
+
+// #define DYNAMIC_SCENE
+
 // --------------------------
 
 #define TARGET_FRAME_RATE 60
 
-#define NUM_OBJECTS 5
+#define NUM_OBJECTS 16
 
 #define TARGET_ASSET_BASEPATH "assets/"
 #define TARGET_MODEL_BASEPATH TARGET_ASSET_BASEPATH "models/"

@@ -31,8 +31,8 @@ static struct {
 #endif
 #ifdef HIGH
 static struct {
-	float level1 = 0.2f;
-	float level2 = 0.1f;
+	float level1 = 0.4f;
+	float level2 = 0.2f;
 } threshold;
 #endif
 #ifdef ORIGIN
@@ -166,16 +166,15 @@ float GetDynamicScoreBasedOnQuadtree(const QuadTree::Node* prev, const QuadTree:
 enum eExpermentLpGLState
 {
 	eels_without_lpgl,
-	eels_with_culling,
 	eels_with_qds,
 	eels_with_meshsimp,
+	eels_with_culling,
 	eels_with_full_lpgl,
 	eels_count
 };
 
 enum eExperimentScenarioState
 {
-	eess_start,
 	eess_basic,
 	eess_high_dynamics,
 	eess_low_dynamics,
@@ -189,15 +188,23 @@ public:
 	std::vector<ModelObj*> models;
 	int targetFrameRate = 60;
 
-	int currentLpGLState = 0;
-	eExpermentLpGLState lpglStateSequence[eels_count];
-	eExperimentScenarioState scenarioState = eess_start;
+	int currentLpGLState = eels_without_lpgl;
+	eExpermentLpGLState lpglStateSequence[eels_count + 1];
+	eExperimentScenarioState scenarioState = eess_basic;
 
 	float timer = 0.0f;
 
 	void evaluateStateMachine();
 
 	Quad quad;
+
+	float position_weight = 0.5f;
+	float dynamics = 1.0f;
+
+	FrameScalerSampleAppImpl()
+	{
+		ML_LOG(Info, "currentTest: %d", currentLpGLState);
+	}
 };
 
 FrameScalerSampleApp::FrameScalerSampleApp()
@@ -220,54 +227,76 @@ int FrameScalerSampleApp::Start()
 
 void FrameScalerSampleApp::Cleanup()
 {
-
 }
 
 void FrameScalerSampleAppImpl::evaluateStateMachine()
 {
-	const float session_period = 10.0f;
+	const float session_period = 5.0f;
 
-	if (scenarioState == eess_start) {
-		if (timer > 5) {
-			scenarioState = eess_basic;
-			timer = 0.0f;
-		}
-	}
-	else if (scenarioState == eess_basic) {
+	const float k_high_dynamics = 2.0f;
+	const float k_low_dynamics = 0.5f;
+	const float k_mid_dynamics = 1.0f;
+
+	const float k_left_position = 0.90f;
+	const float k_right_position = 0.10f;
+	const float k_mid_position = 0.50f;
+
+	if (scenarioState == eess_basic) {
 		if (timer > session_period) {
+			ML_LOG(Info, "eess_high_dynamics");
+			dynamics = k_high_dynamics;
 			scenarioState = eess_high_dynamics;
 			timer = 0.0f;
+
+			for (auto* model : models)
+				model->Reset(k_mid_position, k_high_dynamics);
 		}
 	}
 	else if (scenarioState == eess_high_dynamics) {
 		if (timer > session_period) {
+			ML_LOG(Info, "eess_low_dynamics");
+			dynamics = k_low_dynamics;
 			scenarioState = eess_low_dynamics;
 			timer = 0.0f;
+
+			for (auto* model : models)
+				model->Reset(k_mid_position, k_low_dynamics);
 		}
 	}
 	else if (scenarioState == eess_low_dynamics) {
 		if (timer > session_period) {
+			ML_LOG(Info, "eess_left_most");
+			dynamics = k_mid_dynamics;
+			position_weight = k_left_position;
 			scenarioState = eess_left_most;
 			timer = 0.0f;
+
+			for (auto* model : models)
+				model->Reset(k_left_position, k_mid_dynamics);
 		}
 	}
 	else if (scenarioState == eess_left_most) {
 		if (timer > session_period) {
+			ML_LOG(Info, "eess_right_most");
+			dynamics = k_mid_dynamics;
+			position_weight = k_right_position;
 			scenarioState = eess_right_most;
 			timer = 0.0f;
+
+			for (auto* model : models)
+				model->Reset(k_right_position, k_mid_dynamics);
 		}
 	}
 	else if (scenarioState == eess_right_most) {
 		if (timer > session_period) {
-			currentLpGLState++;
-			scenarioState = eess_start;
+			ML_LOG(Info, "eess_basic");
+			dynamics = k_mid_dynamics;
+			position_weight = k_mid_position;
+			scenarioState = eess_basic;
 			timer = 0.0f;
 
-			for (auto* model : models) {
-				model->SetReductionLevel(0);
-				model->SetCulled(false);
-				model->SetVisible(true);
-			}
+			for (auto* model : models)
+				model->Reset(k_mid_position, k_mid_dynamics);
 		}
 	}
 }
@@ -285,26 +314,7 @@ void FrameScalerSampleApp::Update(float dt)
 			const auto& p = model->GetPosition();
 
 			if (p.y < -1) {
-				bool isLeft = random() % 2 == 0;
-
-				float initialX = 0.0f;
-				glm::vec3 initialVelocity;
-
-				float error_X = random() / (double)RAND_MAX * 0.05;
-				float error_Y = random() / (double)RAND_MAX * 0.25f;
-				float error_Z = random() / (double)RAND_MAX * 2.0f;
-
-				if (isLeft) {
-					initialX = -INITIAL_X;
-					initialVelocity = glm::vec3(0.25f + error_X, 0.25f + error_Y, 0);
-				}
-				else {
-					initialX = INITIAL_X;
-					initialVelocity = glm::vec3(-0.25f + error_X, 0.25f + error_Y, 0);
-				}
-
-				model->SetPosition(glm::vec3(initialX, 0, -5.f + error_Z));
-				model->SetInitialVelocity(initialVelocity);
+				model->Reset(0.5f, 1.0f);
 			}
 
 			model->Update(dt);
@@ -357,8 +367,6 @@ void FrameScalerSampleApp::OnRender(int cameraIndex, float dt)
 
 			if ((currentState == eels_with_qds || currentState == eels_with_full_lpgl)) {
 				bbs.push_back(boundingBox2D);
-				if ((currentState == eels_with_qds || currentState == eels_with_full_lpgl)) {
-				}
 			}
 		}
 
@@ -440,6 +448,13 @@ bool FrameScalerSampleApp::InitContents()
 
 	srandom(201120848);
 
+	impl->lpglStateSequence[0] = eels_without_lpgl;
+	impl->lpglStateSequence[1] = eels_with_qds;
+	impl->lpglStateSequence[2] = eels_with_meshsimp;
+	impl->lpglStateSequence[3] = eels_with_culling;
+	impl->lpglStateSequence[4] = eels_with_full_lpgl;
+
+	/*
 	int currentLpGLstateSeq = 0;
 
 	while (currentLpGLstateSeq < eels_count) {
@@ -453,41 +468,32 @@ bool FrameScalerSampleApp::InitContents()
 
 		impl->lpglStateSequence[currentLpGLstateSeq++] = state;
 	}
+	*/
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 	glEnable(GL_CULL_FACE);
 
 	for (int i = 0; i < n; ++i) {
+		float t = (float)i / n;
+		float c = 5.0f * cosf(t * 2 * M_PI);
+		float s = 5.0f * sinf(t * 2 * M_PI);
+
 		auto model = new ModelObj();
-
-		bool isLeft = random() % 2 == 0;
-
-		float initialX = 0.0f;
-		glm::vec3 initialVelocity;
-
-		float error_X = random() / (double)RAND_MAX * 0.05;
-		float error_Y = random() / (double)RAND_MAX * 0.05f;
-		float error_Z = random() / (double)RAND_MAX * 2.0f;
-
-		if (isLeft) {
-			initialX = -INITIAL_X;
-			initialVelocity = glm::vec3(0.25f + error_X, 0.25f + error_Y, 0);
-		}
-		else {
-			initialX = INITIAL_X;
-			initialVelocity = glm::vec3(-0.25f + error_X, 0.25f + error_Y, 0);
-		}
-
 		model->Load(TARGET_MODEL_FILEPATH, TARGET_MODEL_FILEPATH_REDUCED_1, TARGET_MODEL_FILEPATH_REDUCED_2, TARGET_MODEL_BASEPATH);
 		model->SetShaders(VS_FILE_PATH, FS_FILE_PATH);
 
-		model->SetScale(glm::vec3(0.25f));
-		model->SetPosition(glm::vec3(initialX, 0, -5.f + error_Z));
+		model->SetScale(glm::vec3(0.25f)); 
 		model->SetRotation(glm::vec3(0, 0, 0));
 		model->SetVisible(true);
+#ifdef DYNAMIC_SCENE
 		model->SetIsPhysicalObject(true);
-		model->SetInitialVelocity(initialVelocity);
+		model->Reset(0.5f, 1.0f);
+#else
+		model->SetIsPhysicalObject(false);
+
+		model->SetPosition(glm::vec3(c, 0, s));
+#endif
 
 		if (!model->Create())
 			return false;
@@ -543,24 +549,5 @@ void FrameScalerSampleApp::OnPressed()
 	if (!closestModel)
 		return;
 
-	bool isLeft = random() % 2 == 0;
-
-	float initialX = 0.0f;
-	glm::vec3 initialVelocity;
-
-	float error_X = random() / (double)RAND_MAX * 0.05;
-	float error_Y = random() / (double)RAND_MAX * 0.25f;
-	float error_Z = random() / (double)RAND_MAX * 2.0f;
-
-	if (isLeft) {
-		initialX = -INITIAL_X;
-		initialVelocity = glm::vec3(0.25f + error_X, 0.25f + error_Y, 0);
-	}
-	else {
-		initialX = INITIAL_X;
-		initialVelocity = glm::vec3(-0.25f + error_X, 0.25f + error_Y, 0);
-	}
-
-	closestModel->SetPosition(glm::vec3(initialX, 0, -5.f + error_Z));
-	closestModel->SetInitialVelocity(initialVelocity);
+	closestModel->Reset(0.5f, 1.0f);
 }
