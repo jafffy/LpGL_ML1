@@ -15,8 +15,37 @@ DATAS = \
 	models/555K.mtl : assets/models/555K.mtl \
 	models/box.obj : assets/models/box.obj \
 	models/box.mtl : assets/models/box.mtl \
+	models/box_1.obj : assets/models/box_1.obj \
+	models/box_1.mtl : assets/models/box_1.mtl \
+	models/box_2.obj : assets/models/box_2.obj \
+	models/box_2.mtl : assets/models/box_2.mtl \
 	models/sphere.obj : assets/models/sphere.obj \
 	models/sphere.mtl : assets/models/sphere.mtl \
+	models/sphere_1.obj : assets/models/sphere_1.obj \
+	models/sphere_1.mtl : assets/models/sphere_1.mtl \
+	models/sphere_2.obj : assets/models/sphere_2.obj \
+	models/sphere_2.mtl : assets/models/sphere_2.mtl \
 	models/standard_sphere.obj : assets/models/standard_sphere.obj \
-	models/standard_sphere.mtl : assets/models/standard_sphere.mtl
-
+	models/standard_sphere.mtl : assets/models/standard_sphere.mtl \
+	models/helix.obj : assets/models/helix.obj \
+	models/helix.mtl : assets/models/helix.mtl \
+	models/helix_1.obj : assets/models/helix_1.obj \
+	models/helix_1.mtl : assets/models/helix_1.mtl \
+	models/helix_2.obj : assets/models/helix_2.obj \
+	models/helix_2.mtl : assets/models/helix_2.mtl \
+	models/helix_1.obj : assets/models/helix_1.obj \
+	models/helix_1.mtl : assets/models/helix_1.mtl \
+	models/helix_2.obj : assets/models/helix_2.obj \
+	models/helix_2.mtl : assets/models/helix_2.mtl \
+	models/torus.obj : assets/models/torus.obj \
+	models/torus.mtl : assets/models/torus.mtl \
+	models/torus_1.obj : assets/models/torus_1.obj \
+	models/torus_1.mtl : assets/models/torus_1.mtl \
+	models/torus_2.obj : assets/models/torus_2.obj \
+	models/torus_2.mtl : assets/models/torus_2.mtl \
+	models/capsule.obj : assets/models/capsule.obj \
+	models/capsule.mtl : assets/models/capsule.mtl \
+	models/capsule_1.obj : assets/models/capsule_1.obj \
+	models/capsule_1.mtl : assets/models/capsule_1.mtl \
+	models/capsule_2.obj : assets/models/capsule_2.obj \
+	models/capsule_2.mtl : assets/models/capsule_2.mtl

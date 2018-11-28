@@ -15,6 +15,7 @@ public:
 
 	glm::mat4 V;
 	glm::mat4 P;
+	glm::mat4 V_for_LpGL;
 	glm::mat4 P_for_LpGL;
 
 	float ratio;

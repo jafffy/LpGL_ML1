@@ -64,7 +64,7 @@ public:
 
 	BoundingBox3D boundingBox;
 
-	bool isCulled = true;
+	bool isCulled = false;
 	bool isVisible = true;
 	bool isPhysicalObject = false;
 
@@ -248,7 +248,7 @@ void ModelObj::Update(float dt)
 
 void ModelObj::Render()
 {
-	if (!impl->isVisible || !impl->isCulled)
+	if (!impl->isVisible || impl->isCulled)
 		return;
 
 	GLuint target_vaid = impl->vertex_array_id;

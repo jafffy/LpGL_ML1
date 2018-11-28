@@ -161,12 +161,39 @@ float GetDynamicScoreBasedOnQuadtree(const QuadTree::Node* prev, const QuadTree:
 	return sum;
 }
 
+enum eExpermentLpGLState
+{
+	eels_without_lpgl,
+	eels_with_culling,
+	eels_with_qds,
+	eels_with_meshsimp,
+	eels_with_full_lpgl,
+	eels_count
+};
+
+enum eExperimentScenarioState
+{
+	eess_start,
+	eess_basic,
+	eess_high_dynamics,
+	eess_low_dynamics,
+	eess_left_most,
+	eess_right_most
+};
 
 class FrameScalerSampleAppImpl
 {
 public:
 	std::vector<ModelObj*> models;
 	int targetFrameRate = 60;
+
+	int currentLpGLState = 0;
+	eExpermentLpGLState lpglStateSequence[eels_count];
+	eExperimentScenarioState scenarioState = eess_start;
+
+	float timer = 0.0f;
+
+	void evaluateStateMachine();
 };
 
 FrameScalerSampleApp::FrameScalerSampleApp()
@@ -192,8 +219,63 @@ void FrameScalerSampleApp::Cleanup()
 
 }
 
+void FrameScalerSampleAppImpl::evaluateStateMachine()
+{
+	const float session_period = 10.0f;
+
+	if (scenarioState == eess_start) {
+		if (timer > 5) {
+			scenarioState = eess_basic;
+			timer = 0.0f;
+		}
+	}
+	else if (scenarioState == eess_basic) {
+		if (timer > session_period) {
+			scenarioState = eess_high_dynamics;
+			timer = 0.0f;
+		}
+	}
+	else if (scenarioState == eess_high_dynamics) {
+		if (timer > session_period) {
+			scenarioState = eess_low_dynamics;
+			timer = 0.0f;
+		}
+	}
+	else if (scenarioState == eess_low_dynamics) {
+		if (timer > session_period) {
+			scenarioState = eess_left_most;
+			timer = 0.0f;
+		}
+	}
+	else if (scenarioState == eess_left_most) {
+		if (timer > session_period) {
+			scenarioState = eess_right_most;
+			timer = 0.0f;
+		}
+	}
+	else if (scenarioState == eess_right_most) {
+		if (timer > session_period) {
+			currentLpGLState++;
+			scenarioState = eess_start;
+			timer = 0.0f;
+
+			for (auto* model : models) {
+				model->SetReductionLevel(0);
+				model->SetCulled(false);
+				model->SetVisible(true);
+			}
+		}
+	}
+}
+
 void FrameScalerSampleApp::Update(float dt)
 {
+	float timer = impl->timer;
+
+	impl->evaluateStateMachine();
+
+	impl->timer += dt;
+
 	for (auto* model : impl->models) {
 		if (model->IsVisible()) {
 			const auto& p = model->GetPosition();
@@ -209,11 +291,11 @@ void FrameScalerSampleApp::Update(float dt)
 				float error_Z = random() / (double)RAND_MAX * 2.0f;
 
 				if (isLeft) {
-					initialX = -1.0f;
+					initialX = -INITIAL_X;
 					initialVelocity = glm::vec3(0.25f + error_X, 0.25f + error_Y, 0);
 				}
 				else {
-					initialX = 1.0f;
+					initialX = INITIAL_X;
 					initialVelocity = glm::vec3(-0.25f + error_X, 0.25f + error_Y, 0);
 				}
 
@@ -228,9 +310,11 @@ void FrameScalerSampleApp::Update(float dt)
 
 void FrameScalerSampleApp::OnRender(int cameraIndex, float dt)
 {
+	auto currentState = impl->lpglStateSequence[impl->currentLpGLState];
+
 	Update(dt);
 
-	if (cameraIndex == 0) {
+	if ((currentState != eels_without_lpgl) && cameraIndex == 0) {
 		std::vector<const BoundingBox2D*> bbs;
 
 		for (auto* model : impl->models) {
@@ -238,77 +322,87 @@ void FrameScalerSampleApp::OnRender(int cameraIndex, float dt)
 			auto boundingBox2D = new BoundingBox2D();
 
 			for (const auto& v : boundingVertices) {
-				glm::vec4 result = Camera::Instance().P_for_LpGL * (Camera::Instance().V * glm::vec4(v, 1.0f));
+				glm::vec4 result = Camera::Instance().P_for_LpGL * (Camera::Instance().V_for_LpGL * glm::vec4(v, 1.0f));
 				boundingBox2D->AddPoint(result.x, result.y);
 			}
 
-			if (boundingBox2D->Min.y > 1 || boundingBox2D->Max.y < -1
-				|| boundingBox2D->Min.x > 1 || boundingBox2D->Max.x < -1)
+			if ((currentState == eels_with_culling || currentState == eels_with_full_lpgl)
+				&& (boundingBox2D->Min.y > 1 || boundingBox2D->Max.y < -1
+				|| boundingBox2D->Min.x > 1 || boundingBox2D->Max.x < -1))
 			{
-				model->SetCulled(false);
+				model->SetCulled(true);
 			}
 			else
 			{
-				model->SetCulled(true);
-				bbs.push_back(boundingBox2D);
+				model->SetCulled(false);
 
-				if (boundingBox2D->Min.y > 0.50 || boundingBox2D->Max.y < -0.50
-					|| boundingBox2D->Min.x > 0.50 || boundingBox2D->Max.x < -0.50) {
-					model->SetReductionLevel(2);
+				if ((currentState == eels_with_meshsimp || currentState == eels_with_full_lpgl)) {
+					if (boundingBox2D->Min.y > 0.50 || boundingBox2D->Max.y < -0.50
+						|| boundingBox2D->Min.x > 0.50 || boundingBox2D->Max.x < -0.50) {
+						model->SetReductionLevel(2);
+					}
+					else if (boundingBox2D->Min.y > 0.25 || boundingBox2D->Max.y < -0.25
+						|| boundingBox2D->Min.x > 0.25 || boundingBox2D->Max.x < -0.25) {
+						model->SetReductionLevel(1);
+					}
+					else {
+						model->SetReductionLevel(0);
+					}
 				}
-				else if (boundingBox2D->Min.y > 0.25 || boundingBox2D->Max.y < -0.25
-					|| boundingBox2D->Min.x > 0.25 || boundingBox2D->Max.x < -0.25) {
-					model->SetReductionLevel(1);
-				}
-				else {
-					model->SetReductionLevel(0);
+			}
+
+			if ((currentState == eels_with_qds || currentState == eels_with_full_lpgl)) {
+				bbs.push_back(boundingBox2D);
+				if ((currentState == eels_with_qds || currentState == eels_with_full_lpgl)) {
 				}
 			}
 		}
 
-		auto* quadTree = QuadTree::Create(bbs, QDS_DEPTH);
-
-		if (lastQuadTree) {
-			float dynamicScore = GetDynamicScoreBasedOnQuadtree(lastQuadTree->rootNode, quadTree->rootNode);
-
-#ifdef LOG_DYNAMIC_SCORE
-			if (dynamicScore > 0)
-				ML_LOG(Info, "dynamic score: %f\n", dynamicScore);
-#endif // LOG_DYNAMIC_SCORE
-
-			if (GetTargetFrameRate() > 60 - 1) {
-				if (dynamicScore < threshold.level1) {
-					SetTargetFrameRate(30);
-				}
-			}
-			else if (GetTargetFrameRate() > 30 - 1) {
-				if (dynamicScore > threshold.level1) {
-					SetTargetFrameRate(60);
-				}
-				else if (dynamicScore < threshold.level2) {
-					SetTargetFrameRate(15);
-				}
-			}
-			else if (GetTargetFrameRate() > 15 - 1) {
-				if (dynamicScore > threshold.level2) {
-					SetTargetFrameRate(30);
-				}
-			}
+		if ((currentState == eels_with_qds || currentState == eels_with_full_lpgl)) {
+			auto* quadTree = QuadTree::Create(bbs, QDS_DEPTH);
 
 			if (lastQuadTree) {
-				delete lastQuadTree;
-				lastQuadTree = nullptr;
-			}
-		}
+				float dynamicScore = GetDynamicScoreBasedOnQuadtree(lastQuadTree->rootNode, quadTree->rootNode);
 
-		for (int i = 0; i < bbs.size(); ++i) {
-			if (bbs[i]) {
-				delete bbs[i];
-				bbs[i] = nullptr;
-			}
-		}
+#ifdef LOG_DYNAMIC_SCORE
+				if (dynamicScore > 0)
+					ML_LOG(Info, "dynamic score: %f\n", dynamicScore);
+#endif // LOG_DYNAMIC_SCORE
 
-		lastQuadTree = quadTree;
+				if (GetTargetFrameRate() > 60 - 1) {
+					if (dynamicScore < threshold.level1) {
+						SetTargetFrameRate(30);
+					}
+				}
+				else if (GetTargetFrameRate() > 30 - 1) {
+					if (dynamicScore > threshold.level1) {
+						SetTargetFrameRate(60);
+					}
+					else if (dynamicScore < threshold.level2) {
+						SetTargetFrameRate(15);
+					}
+				}
+				else if (GetTargetFrameRate() > 15 - 1) {
+					if (dynamicScore > threshold.level2) {
+						SetTargetFrameRate(30);
+					}
+				}
+
+				if (lastQuadTree) {
+					delete lastQuadTree;
+					lastQuadTree = nullptr;
+				}
+			}
+
+			for (int i = 0; i < bbs.size(); ++i) {
+				if (bbs[i]) {
+					delete bbs[i];
+					bbs[i] = nullptr;
+				}
+			}
+
+			lastQuadTree = quadTree;
+		}
 	}
 
 	glClearColor(0.0, 0.0, 0.0, 0.0);
@@ -320,7 +414,13 @@ void FrameScalerSampleApp::OnRender(int cameraIndex, float dt)
 
 int FrameScalerSampleApp::GetTargetFrameRate()
 {
-	return impl->targetFrameRate;
+	auto currentState = impl->lpglStateSequence[impl->currentLpGLState];
+
+	if (currentState == eels_with_full_lpgl
+		|| currentState == eels_with_qds)
+		return impl->targetFrameRate;
+	else
+		return 60;
 }
 
 void FrameScalerSampleApp::SetTargetFrameRate(int targetFrameRate)
@@ -332,7 +432,21 @@ bool FrameScalerSampleApp::InitContents()
 {
 	int n = NUM_OBJECTS;
 
-	srand(time(0));
+	srandom(201120848);
+
+	int currentLpGLstateSeq = 0;
+
+	while (currentLpGLstateSeq < eels_count) {
+		auto state = (eExpermentLpGLState)(random() % eels_count);
+
+		for (int j = 0; j < currentLpGLstateSeq; ++j) {
+			if (impl->lpglStateSequence[j] == state) {
+				continue;
+			}
+		}
+
+		impl->lpglStateSequence[currentLpGLstateSeq++] = state;
+	}
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
@@ -351,17 +465,17 @@ bool FrameScalerSampleApp::InitContents()
 		float error_Z = random() / (double)RAND_MAX * 2.0f;
 
 		if (isLeft) {
-			initialX = -1.0f;
+			initialX = -INITIAL_X;
 			initialVelocity = glm::vec3(0.25f + error_X, 0.25f + error_Y, 0);
 		}
 		else {
-			initialX = 1.0f;
+			initialX = INITIAL_X;
 			initialVelocity = glm::vec3(-0.25f + error_X, 0.25f + error_Y, 0);
 		}
 
 		model->Load(TARGET_MODEL_FILEPATH, TARGET_MODEL_FILEPATH_REDUCED_1, TARGET_MODEL_FILEPATH_REDUCED_2, TARGET_MODEL_BASEPATH);
 		model->SetShaders(VS_FILE_PATH, FS_FILE_PATH);
-		model->SetScale(glm::vec3(1.0f));
+		model->SetScale(glm::vec3(0.25f));
 		model->SetPosition(glm::vec3(initialX, 0, -5.f + error_Z));
 		model->SetRotation(glm::vec3(0, 0, 0));
 		model->SetVisible(true);
@@ -401,11 +515,11 @@ void FrameScalerSampleApp::OnPressed()
 		auto boundingBox2D = new BoundingBox2D();
 
 		for (const auto& v : boundingVertices) {
-			glm::vec4 result = Camera::Instance().P_for_LpGL * (Camera::Instance().V * glm::vec4(v, 1.0f));
+			glm::vec4 result = Camera::Instance().P_for_LpGL * (Camera::Instance().V_for_LpGL * glm::vec4(v, 1.0f));
 			boundingBox2D->AddPoint(result.x, result.y);
 
-			if (!(boundingBox2D->Min.y > 0.10 || boundingBox2D->Max.y < -0.10
-				|| boundingBox2D->Min.x > 0.10 || boundingBox2D->Max.x < -0.10)) {
+			if (!(boundingBox2D->Min.y > 0.20 || boundingBox2D->Max.y < -0.20
+				|| boundingBox2D->Min.x > 0.20 || boundingBox2D->Max.x < -0.20)) {
 
 				if (maxDistance < result.z) {
 					closestModel = model;
@@ -428,11 +542,11 @@ void FrameScalerSampleApp::OnPressed()
 	float error_Z = random() / (double)RAND_MAX * 2.0f;
 
 	if (isLeft) {
-		initialX = -1.0f;
+		initialX = -INITIAL_X;
 		initialVelocity = glm::vec3(0.25f + error_X, 0.25f + error_Y, 0);
 	}
 	else {
-		initialX = 1.0f;
+		initialX = INITIAL_X;
 		initialVelocity = glm::vec3(-0.25f + error_X, 0.25f + error_Y, 0);
 	}
 

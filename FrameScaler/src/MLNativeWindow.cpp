@@ -298,6 +298,21 @@ void MLNativeWindow::OnRender(float dt)
 	for (int camera = 0; camera < virtual_camera_array.num_virtual_cameras; ++camera) {
 		const MLRectf& viewport = virtual_camera_array.viewport;
 
+		glm::vec3 view_pos[2] = {
+			glm::make_vec3(virtual_camera_array.virtual_cameras[0].transform.position.values),
+			glm::make_vec3(virtual_camera_array.virtual_cameras[1].transform.position.values),
+		};
+		glm::quat view_rot[2] = {
+			glm::make_quat(virtual_camera_array.virtual_cameras[0].transform.rotation.values),
+			glm::make_quat(virtual_camera_array.virtual_cameras[1].transform.rotation.values),
+		};
+
+		auto mean_view_pos = (view_pos[0] + view_pos[1]) * 0.5f;
+		auto mean_view_rot = glm::slerp(view_rot[0], view_rot[1], 0.5f);
+
+		Camera::Instance().P_for_LpGL = glm::perspectiveFov(glm::pi<float>() / 2, viewport.w, viewport.h, 0.1f, 100.0f);
+		Camera::Instance().V_for_LpGL = glm::transpose(glm::translate(mean_view_pos) * glm::toMat4(mean_view_rot));;
+
 		glBindFramebuffer(GL_FRAMEBUFFER, impl->graphics_context.framebuffer_id);
 		glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, virtual_camera_array.color_id, 0, camera);
 		glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, virtual_camera_array.depth_id, 0, camera);
@@ -317,7 +332,6 @@ void MLNativeWindow::OnRender(float dt)
 		Camera::Instance().V = glm::transpose(glm::translate(view_translation) * glm::toMat4(view_rotation));
 		Camera::Instance().P = glm::make_mat4(ml_P.matrix_colmajor);
 		Camera::Instance().ratio = viewport.w / viewport.h;
-		Camera::Instance().P_for_LpGL = glm::perspectiveFov(glm::pi<float>() / 2, viewport.w, viewport.h, 0.1f, 100.0f);
 
 		impl->app->OnRender(camera, dt);
 
