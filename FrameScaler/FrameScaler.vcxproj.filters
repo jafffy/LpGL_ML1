@@ -39,6 +39,9 @@
     <ClCompile Include="src\MeshLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Quad.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inc/FrameScaler.h">
@@ -77,6 +80,12 @@
     <ClInclude Include="inc\MeshLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Quad.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\CImg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="manifest.xml" />
@@ -108,5 +117,6 @@
     <None Include="shaders\normal.vert">
       <Filter>shaders</Filter>
     </None>
+    <None Include="texture.comp" />
   </ItemGroup>
 </Project>

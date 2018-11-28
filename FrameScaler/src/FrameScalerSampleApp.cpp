@@ -20,6 +20,8 @@
 #include <ml_logging.h>
 #endif
 
+#include "Quad.h"
+
 #define HIGH
 #ifdef LOW
 static struct {
@@ -194,6 +196,8 @@ public:
 	float timer = 0.0f;
 
 	void evaluateStateMachine();
+
+	Quad quad;
 };
 
 FrameScalerSampleApp::FrameScalerSampleApp()
@@ -410,6 +414,8 @@ void FrameScalerSampleApp::OnRender(int cameraIndex, float dt)
 
 	for (auto* model : impl->models)
 		model->Render();
+
+	impl->quad.Draw();
 }
 
 int FrameScalerSampleApp::GetTargetFrameRate()
@@ -488,11 +494,15 @@ bool FrameScalerSampleApp::InitContents()
 		impl->models.push_back(model);
 	}
 
+	impl->quad.InitContents();
+
 	return true;
 }
 
 void FrameScalerSampleApp::DestroyContents()
 {
+	impl->quad.DestroyContents();
+
 	for (auto* model : impl->models) {
 		model->Destroy();
 

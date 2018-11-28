@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|ML">
@@ -213,6 +213,7 @@
     <ClCompile Include="src\MeshLoader.cpp" />
     <ClCompile Include="src\MLNativeWindow.cpp" />
     <ClCompile Include="src\ModelObj.cpp" />
+    <ClCompile Include="src\Quad.cpp" />
     <ClCompile Include="src\ShaderUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -220,12 +221,14 @@
     <ClInclude Include="inc\App.h" />
     <ClInclude Include="inc\BoundingBox.h" />
     <ClInclude Include="inc\Camera.h" />
+    <ClInclude Include="inc\CImg.h" />
     <ClInclude Include="inc\Experiment.h" />
     <ClInclude Include="inc\FrameScalerSampleApp.h" />
     <ClInclude Include="inc\graphics_context_t.h" />
     <ClInclude Include="inc\MeshLoader.h" />
     <ClInclude Include="inc\ModelObj.h" />
     <ClInclude Include="inc\MLNativeWindow.h" />
+    <ClInclude Include="inc\Quad.h" />
     <ClInclude Include="inc\ShaderUtils.h" />
     <ClInclude Include="inc\tinyobjloader.h" />
   </ItemGroup>
@@ -242,13 +245,14 @@
     <None Include="shaders\normal.vert" />
     <None Include="shaders\phong.frag" />
     <None Include="shaders\phong.vert" />
+    <None Include="texture.comp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="FrameScaler.package" />
   </ItemGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties MLProjectMabuSyncTime="131877481682249830 (2018-11-26 오후 11:22:48 UTC)" />
+      <UserProperties MLProjectMabuSyncTime="131878612923098571 (2018-11-28 오전 6:48:12 UTC)" />
     </VisualStudio>
   </ProjectExtensions>
 </Project>
