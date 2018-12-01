@@ -208,14 +208,18 @@
   </ImportGroup>
   <ItemGroup>
     <ClCompile Include="src/FrameScaler.cpp" />
+    <ClCompile Include="src\FidelityScene.cpp" />
     <ClCompile Include="src\FrameScalerSampleApp.cpp" />
     <ClCompile Include="src\graphics_context_t.cpp" />
     <ClCompile Include="src\lodepng.cpp" />
+    <ClCompile Include="src\LpGLEngine.cpp" />
     <ClCompile Include="src\MeshLoader.cpp" />
     <ClCompile Include="src\MLNativeWindow.cpp" />
     <ClCompile Include="src\ModelObj.cpp" />
     <ClCompile Include="src\Quad.cpp" />
     <ClCompile Include="src\ShaderUtils.cpp" />
+    <ClCompile Include="src\VaryingCullingAngleScene.cpp" />
+    <ClCompile Include="src\VaryingFocusAngleScene.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inc/FrameScaler.h" />
@@ -223,15 +227,19 @@
     <ClInclude Include="inc\BoundingBox.h" />
     <ClInclude Include="inc\Camera.h" />
     <ClInclude Include="inc\Experiment.h" />
+    <ClInclude Include="inc\FidelityScene.h" />
     <ClInclude Include="inc\FrameScalerSampleApp.h" />
     <ClInclude Include="inc\graphics_context_t.h" />
     <ClInclude Include="inc\lodepng.h" />
+    <ClInclude Include="inc\LpGLEngine.h" />
     <ClInclude Include="inc\MeshLoader.h" />
     <ClInclude Include="inc\ModelObj.h" />
     <ClInclude Include="inc\MLNativeWindow.h" />
     <ClInclude Include="inc\Quad.h" />
     <ClInclude Include="inc\ShaderUtils.h" />
     <ClInclude Include="inc\tinyobjloader.h" />
+    <ClInclude Include="inc\VaryingCullingAngleScene.h" />
+    <ClInclude Include="inc\VaryingFocusAngleScene.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="manifest.xml" />
@@ -242,6 +250,7 @@
     <None Include="shaders\basic.vert" />
     <None Include="shaders\basic3D.frag" />
     <None Include="shaders\basic3D.vert" />
+    <None Include="shaders\green.frag" />
     <None Include="shaders\normal.frag" />
     <None Include="shaders\normal.vert" />
     <None Include="shaders\phong.frag" />
@@ -255,7 +264,7 @@
   </ItemGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties MLProjectMabuSyncTime="131880643402506662 (2018-11-30 오후 3:12:20 UTC)" />
+      <UserProperties MLProjectMabuSyncTime="131881261607485483 (2018-12-01 오전 8:22:40 UTC)" />
     </VisualStudio>
   </ProjectExtensions>
 </Project>

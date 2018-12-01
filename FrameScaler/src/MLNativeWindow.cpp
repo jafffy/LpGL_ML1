@@ -150,6 +150,7 @@ public:
 	App* app = nullptr;
 	graphics_context_t graphics_context;
 	MLHandle graphics_client = ML_INVALID_HANDLE;
+	float kDecreasingAlpha = 0.0f;
 };
 
 static MLNativeWindowImpl* g_impl = nullptr;
@@ -176,6 +177,8 @@ static void on_button_down(uint8_t controller_id, MLInputControllerButton button
 	}
 
 	g_impl->app->OnPressed();
+
+	ML_LOG_TAG(Info, "CULLING", "Current CULLING FOV: %f", (LOD_LV2 - g_impl->kDecreasingAlpha) / M_PI * 180);
 }
 
 int MLNativeWindow::Start()
@@ -278,6 +281,8 @@ int MLNativeWindow::Start()
 
 void MLNativeWindow::OnRender(float dt)
 {
+	// g_impl->kDecreasingAlpha += 0.5f * M_PI / 180 * dt;
+
 	MLGraphicsFrameParams frame_params;
 
 	MLResult out_result = MLGraphicsInitFrameParams(&frame_params);
@@ -311,7 +316,7 @@ void MLNativeWindow::OnRender(float dt)
 		auto mean_view_pos = (view_pos[0] + view_pos[1]) * 0.5f;
 		auto mean_view_rot = glm::slerp(view_rot[0], view_rot[1], 0.5f);
 
-		Camera::Instance().P_for_LpGL = glm::infinitePerspective(CULLING_FOV, 1.0f, 0.1f);
+		Camera::Instance().P_for_LpGL = glm::perspectiveFov(CULLING_FOV, 1280.0f, 960.0f, 0.1f, 10.0f);
 		Camera::Instance().V_for_LpGL = glm::transpose(glm::translate(mean_view_pos) * glm::toMat4(mean_view_rot));;
 
 		glBindFramebuffer(GL_FRAMEBUFFER, impl->graphics_context.framebuffer_id);

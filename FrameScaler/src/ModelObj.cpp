@@ -71,9 +71,6 @@ public:
 	glm::vec3 velocity = glm::vec3(0, 0, 0);
 	glm::vec3 acceleration = glm::vec3(0, 0, 0);
 
-	glm::vec3 color = glm::vec3(1.0f, 1.0f, 1.0f);
-	GLuint color_id = 0;
-
 	BoundingSphere boundingSphere;
 
 	float dynamics = 1.0f;
@@ -212,7 +209,6 @@ bool ModelObj::Create()
 	impl->matrix_id = glGetUniformLocation(impl->program_id, "MVP");
 	impl->M_id = glGetUniformLocation(impl->program_id, "M");
 	impl->V_id = glGetUniformLocation(impl->program_id, "V");
-	impl->color_id = glGetUniformLocation(impl->color_id, "color");
 
 	glUseProgram(0);
 
@@ -272,7 +268,6 @@ void ModelObj::Render()
 	glUniformMatrix4fv(impl->matrix_id, 1, GL_FALSE, glm::value_ptr(impl->MVP));
 	glUniformMatrix4fv(impl->M_id, 1, GL_FALSE, glm::value_ptr(impl->M));
 	glUniformMatrix4fv(impl->V_id, 1, GL_FALSE, glm::value_ptr(impl->V));
-	glUniform3fv(impl->color_id, 1, glm::value_ptr(impl->color));
 
 	glBindVertexArray(target_vaid);
 
@@ -363,16 +358,6 @@ BoundingSphere ModelObj::GetBoundingSphere() const
 	boundingSphereForReturn.radius = impl->boundingSphere.radius * impl->scale.x;
 
 	return boundingSphereForReturn;
-}
-
-glm::vec3 ModelObj::GetColor() const
-{
-	return impl->color;
-}
-
-void ModelObj::SetColor(const glm::vec3& color)
-{
-	impl->color = color;
 }
 
 void ModelObj::Reset(float position_weight, float dynamics)

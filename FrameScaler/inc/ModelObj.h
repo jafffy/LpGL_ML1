@@ -47,9 +47,6 @@ public:
 	std::vector<glm::vec3> GetBoundingBox() const;
 	BoundingSphere GetBoundingSphere() const;
 
-	glm::vec3 GetColor() const;
-	void SetColor(const glm::vec3& color);
-
 	void Reset(float position_weight, float dynamics);
 
 	void SetAbnormal();

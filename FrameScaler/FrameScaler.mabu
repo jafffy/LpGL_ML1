@@ -7,13 +7,17 @@ OPTIONS = \
 	warn/on
 
 SRCS = \
+	src/FidelityScene.cpp \
 	src/FrameScaler.cpp \
 	src/FrameScalerSampleApp.cpp \
+	src/LpGLEngine.cpp \
 	src/MLNativeWindow.cpp \
 	src/MeshLoader.cpp \
 	src/ModelObj.cpp \
 	src/Quad.cpp \
 	src/ShaderUtils.cpp \
+	src/VaryingCullingAngleScene.cpp \
+	src/VaryingFocusAngleScene.cpp \
 	src/graphics_context_t.cpp \
 	src/lodepng.cpp
 

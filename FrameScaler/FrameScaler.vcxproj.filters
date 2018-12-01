@@ -9,19 +9,18 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc</Extensions>
     </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>bmp;gif;jpg;jpeg;png;wav;mp4;axf</Extensions>
-    </Filter>
     <Filter Include="shaders">
       <UniqueIdentifier>{b513c0fb-a0d9-4b29-8a4f-82497df03cec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scene">
+      <UniqueIdentifier>{29b1cd3c-cf4e-41d8-8260-07397ccdc9f9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine">
+      <UniqueIdentifier>{b0277b4a-ec03-4125-8d80-0bd806839904}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src/FrameScaler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\FrameScalerSampleApp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\graphics_context_t.cpp">
@@ -45,12 +44,24 @@
     <ClCompile Include="src\lodepng.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\FrameScalerSampleApp.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\LpGLEngine.cpp">
+      <Filter>Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FidelityScene.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\VaryingCullingAngleScene.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\VaryingFocusAngleScene.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inc/FrameScaler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\FrameScalerSampleApp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="inc\graphics_context_t.h">
@@ -77,9 +88,6 @@
     <ClInclude Include="inc\MLNativeWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\App.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="inc\MeshLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -88,6 +96,24 @@
     </ClInclude>
     <ClInclude Include="inc\lodepng.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\FrameScalerSampleApp.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\App.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\LpGLEngine.h">
+      <Filter>Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\FidelityScene.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\VaryingCullingAngleScene.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\VaryingFocusAngleScene.h">
+      <Filter>Scene</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -125,6 +151,9 @@
       <Filter>shaders</Filter>
     </None>
     <None Include="shaders\texture.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\green.frag">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>
