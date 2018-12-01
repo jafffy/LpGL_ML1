@@ -52,6 +52,9 @@ public:
 
 	void Reset(float position_weight, float dynamics);
 
+	void SetAbnormal();
+	bool IsAbnormal();
+
 private:
 	ModelObjImpl* impl = nullptr;
 };

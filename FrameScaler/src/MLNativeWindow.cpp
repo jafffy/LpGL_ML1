@@ -1,5 +1,6 @@
 #include "MLNativeWindow.h"
 #include "Camera.h"
+#include "Experiment.h"
 
 #ifndef _WIN32
 #include <unistd.h>
@@ -310,7 +311,7 @@ void MLNativeWindow::OnRender(float dt)
 		auto mean_view_pos = (view_pos[0] + view_pos[1]) * 0.5f;
 		auto mean_view_rot = glm::slerp(view_rot[0], view_rot[1], 0.5f);
 
-		Camera::Instance().P_for_LpGL = glm::perspectiveFov(glm::pi<float>() / 2, viewport.w, viewport.h, 0.1f, 100.0f);
+		Camera::Instance().P_for_LpGL = glm::infinitePerspective(CULLING_FOV, 1.0f, 0.1f);
 		Camera::Instance().V_for_LpGL = glm::transpose(glm::translate(mean_view_pos) * glm::toMat4(mean_view_rot));;
 
 		glBindFramebuffer(GL_FRAMEBUFFER, impl->graphics_context.framebuffer_id);

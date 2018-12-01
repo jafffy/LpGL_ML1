@@ -72,11 +72,12 @@ public:
 	glm::vec3 acceleration = glm::vec3(0, 0, 0);
 
 	glm::vec3 color = glm::vec3(1.0f, 1.0f, 1.0f);
-	GLuint color_id;
+	GLuint color_id = 0;
 
 	BoundingSphere boundingSphere;
 
 	float dynamics = 1.0f;
+	bool isAbnormal = false;
 };
 
 ModelObj::ModelObj()
@@ -100,7 +101,7 @@ static void model_load(std::string path, std::string base_path, std::function<vo
 
 	std::string warn;
 	std::string err;
-	bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, path.c_str(), base_path.c_str());
+	bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, path.c_str(), base_path.c_str(), false);
 
 	for (auto shape : shapes) {
 		size_t index_offset = 0;
@@ -401,4 +402,14 @@ void ModelObj::Reset(float position_weight, float dynamics)
 	SetInitialVelocity(initialVelocity);
 
 	impl->dynamics = dynamics;
+}
+
+void ModelObj::SetAbnormal()
+{
+	impl->isAbnormal = true;
+}
+
+bool ModelObj::IsAbnormal()
+{
+	return impl->isAbnormal;
 }

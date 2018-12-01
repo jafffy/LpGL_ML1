@@ -8,6 +8,8 @@ out vec3 out_color;
 uniform mat4 M;
 uniform mat4 V;
 
+uniform vec3 color;
+
 void main()
 {
 	vec3 LightColor = vec3(1, 1, 1);
