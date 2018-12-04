@@ -4,4 +4,3 @@ USES = \
 	models \
 	shaders \
 	texture
-

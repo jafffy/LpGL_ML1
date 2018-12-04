@@ -11,6 +11,8 @@
 
 #include <vector>
 #include <functional>
+#include <random>
+#include <algorithm>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtx/intersect.hpp"
@@ -28,6 +30,7 @@ class FrameScalerSampleAppImpl
 {
 public:
 	std::vector<ModelObj*> models;
+	std::vector<ModelObj*> abnormalModels;
 	int targetFrameRate = 60;
 
 	int randomLpgLStateIndex = 0;
@@ -45,6 +48,10 @@ public:
 	float position_weight = 0.5f;
 	float dynamics = 1.0f;
 
+#ifdef FIDELITY_SCENE
+	int abnormal_random_index = 0;
+#endif
+
 #ifdef DYNAMIC_SCENE
 	int numHit = 0;
 	int numMissed = 0;
@@ -58,35 +65,21 @@ public:
 	void distributeObjects()
 	{
 #if defined(FIDELITY_SCENE)
-		int n = NUM_OBJECTS;
+		abnormal_random_index = random() % 3;
+		ML_LOG_TAG(Info, "FIDELITY", "%d", abnormal_random_index);
 
-		int abnormalIndex = random() % 3;
+		std::random_device rd;
+		std::mt19937 g(rd());
+		std::shuffle(models.begin(), models.end(), g);
 
-		for (int i = 0; i < 3; ++i) {
-			auto* model = models[i];
+		int n = models.size();
 
-			if (i != abnormalIndex) {
-				model->SetVisible(false);
-			}
-			else {
-				model->SetVisible(true);
-			}
-		}
-
-		int abnormalPosition = random() % n + 3;
-
-		for (int i = 3; i < n + 3; ++i) {
+		for (int i = 0; i < n; ++i) {
 			float t = (float)(i - 3) / n;
 			float c = 5.0f * cosf(t * 2 * M_PI);
 			float s = 5.0f * sinf(t * 2 * M_PI);
 
 			ModelObj* model = models[i];
-			model->SetVisible(true);
-
-			if (abnormalPosition == i) {
-				model->SetVisible(false);
-				model = models[abnormalIndex];
-			}
 
 			model->SetRotation(glm::vec3(0, 0, -t * 2 * M_PI + M_PI * 0.5f + M_PI));
 			model->SetPosition(glm::vec3(c, 0, s));
@@ -144,7 +137,6 @@ public:
 			model->Load(model_path,
 				model_path_res1,
 				model_path_res2, TARGET_MODEL_BASEPATH);
-			model->SetAbnormal();
 			model->SetShaders(VS_FILE_PATH, FS_FILE_PATH);
 
 			model->SetScale(glm::vec3(0.25f));
@@ -155,10 +147,15 @@ public:
 				return false;
 
 			models.push_back(model);
+			abnormalModels.push_back(model);
 		}
 #endif
 
+#ifdef FIDELITY_SCENE
+		int n = NUM_OBJECTS - 3;
+#else
 		int n = NUM_OBJECTS;
+#endif
 
 		for (int i = 0; i < n; ++i) {
 			auto model = new ModelObj();
@@ -328,7 +325,7 @@ int FrameScalerSampleApp::GetTargetFrameRate()
 	auto currentState = impl->lpglStateSequence[impl->currentLpGLState];
 
 	if (currentState == eels_with_full_lpgl
-		|| currentState == eels_with_qds)
+		|| currentState == eels_with_ds)
 		return impl->targetFrameRate;
 	else
 		return 60;
@@ -344,7 +341,7 @@ bool FrameScalerSampleApp::InitContents()
 	srandom(201120848);
 
 	impl->lpglStateSequence[0] = eels_without_lpgl;
-	impl->lpglStateSequence[1] = eels_with_qds;
+	impl->lpglStateSequence[1] = eels_with_ds;
 	impl->lpglStateSequence[2] = eels_with_meshsimp;
 	impl->lpglStateSequence[3] = eels_with_culling;
 	impl->lpglStateSequence[4] = eels_with_full_lpgl;
@@ -429,7 +426,7 @@ void FrameScalerSampleApp::OnPressed()
 	}
 
 #if defined(FIDELITY_SCENE)
-	if (closestModel->IsAbnormal()) {
+	if (closestModel == impl->abnormalModels[impl->abnormal_random_index]) {
 		ML_LOG_TAG(Info, FIDELITY_LATENCY, "Find!");
 
 		impl->distributeObjects();

@@ -108,7 +108,6 @@ void QDSEvaluationScene::OnRender(int cameraIndex, float dt)
 	}
 
 	if (cameraIndex == 0) {
-		LpGLEngine::instance().SetQDSDepth(impl->qds_level);
 		int recommended_fps = LpGLEngine::instance().Update(eels_with_full_lpgl, impl->models, impl->targetFrameRate, dt);
 		impl->targetFrameRate = recommended_fps;
 	}

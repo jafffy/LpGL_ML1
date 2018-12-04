@@ -33,13 +33,20 @@ public:
 	void SetPosition(glm::vec3 position);
 	const glm::vec3& GetPosition() const;
 
+	void SetLastProjectedPosition(glm::vec2 position);
+	const glm::vec2& GetLastProjectedPosition() const;
+
 	void SetRotation(glm::vec3 rotation);
 	void SetScale(glm::vec3 scale);
 
 	void SetCulled(bool isCulled);
+	bool IsCulled() const;
 	void SetVisible(bool isVisible);
 	bool IsVisible() const;
 	void SetReductionLevel(int n);
+
+	bool IsLastCulled() const;
+	bool IsLastVisible() const;
 
 	void SetIsPhysicalObject(bool isPhysicalObject);
 	void SetInitialVelocity(const glm::vec3& v0);

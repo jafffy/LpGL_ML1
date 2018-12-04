@@ -178,7 +178,7 @@ static void on_button_down(uint8_t controller_id, MLInputControllerButton button
 
 	g_impl->app->OnPressed();
 
-	ML_LOG_TAG(Info, "CULLING", "Current CULLING FOV: %f", (LOD_LV2 - g_impl->kDecreasingAlpha) / M_PI * 180);
+	ML_LOG_TAG(Info, "CULLING", "Current CULLING FOV: %f", (LOD_LV1 - g_impl->kDecreasingAlpha) / M_PI * 180);
 }
 
 int MLNativeWindow::Start()

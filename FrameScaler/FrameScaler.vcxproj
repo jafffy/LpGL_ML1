@@ -216,6 +216,7 @@
     <ClCompile Include="src\MeshLoader.cpp" />
     <ClCompile Include="src\MLNativeWindow.cpp" />
     <ClCompile Include="src\ModelObj.cpp" />
+    <ClCompile Include="src\ObjectQualityScene.cpp" />
     <ClCompile Include="src\Quad.cpp" />
     <ClCompile Include="src\ShaderUtils.cpp" />
     <ClCompile Include="src\VaryingCullingAngleScene.cpp" />
@@ -235,6 +236,8 @@
     <ClInclude Include="inc\MeshLoader.h" />
     <ClInclude Include="inc\ModelObj.h" />
     <ClInclude Include="inc\MLNativeWindow.h" />
+    <ClInclude Include="inc\ObjectQuqlityScene.h" />
+    <ClInclude Include="inc\QDSEvaluationScene.h" />
     <ClInclude Include="inc\Quad.h" />
     <ClInclude Include="inc\ShaderUtils.h" />
     <ClInclude Include="inc\tinyobjloader.h" />
@@ -245,6 +248,7 @@
     <None Include="manifest.xml" />
     <None Include="FrameScaler.mabu" />
     <None Include="models.comp" />
+    <None Include="objqual.comp" />
     <None Include="shaders.comp" />
     <None Include="shaders\basic.frag" />
     <None Include="shaders\basic.vert" />
@@ -257,6 +261,9 @@
     <None Include="shaders\phong.vert" />
     <None Include="shaders\texture.frag" />
     <None Include="shaders\texture.vert" />
+    <None Include="spheres.comp" />
+    <None Include="spheres_by_10.comp" />
+    <None Include="spheres_by_5.comp" />
     <None Include="texture.comp" />
   </ItemGroup>
   <ItemGroup>
@@ -264,7 +271,7 @@
   </ItemGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties MLProjectMabuSyncTime="131881261607485483 (2018-12-01 오전 8:22:40 UTC)" />
+      <UserProperties MLProjectMabuSyncTime="131883103638236967 (2018-12-03 오전 11:32:43 UTC)" />
     </VisualStudio>
   </ProjectExtensions>
 </Project>

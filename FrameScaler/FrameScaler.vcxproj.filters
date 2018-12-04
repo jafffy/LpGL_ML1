@@ -59,6 +59,9 @@
     <ClCompile Include="src\VaryingFocusAngleScene.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
+    <ClCompile Include="src\ObjectQualityScene.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inc/FrameScaler.h">
@@ -115,6 +118,12 @@
     <ClInclude Include="inc\VaryingFocusAngleScene.h">
       <Filter>Scene</Filter>
     </ClInclude>
+    <ClInclude Include="inc\QDSEvaluationScene.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\ObjectQuqlityScene.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="manifest.xml" />
@@ -156,5 +165,9 @@
     <None Include="shaders\green.frag">
       <Filter>shaders</Filter>
     </None>
+    <None Include="objqual.comp" />
+    <None Include="spheres.comp" />
+    <None Include="spheres_by_5.comp" />
+    <None Include="spheres_by_10.comp" />
   </ItemGroup>
 </Project>
