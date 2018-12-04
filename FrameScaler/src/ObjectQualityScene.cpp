@@ -66,11 +66,12 @@ bool ObjectQualityScene::InitContents()
 	glDepthFunc(GL_LESS);
 	glEnable(GL_CULL_FACE);
 
-	for (int i = 1; i < 10; ++i) {
+	// for (int i = 1; i < 10; ++i) {
+  int i = 1;
 		auto model = new ModelObj();
-		model->Load(REDUCED_MODEL_PATH_OF("happybudda", 10.0f * i),
-			REDUCED_MODEL_PATH_OF("happybudda", 10.0f * i),
-			REDUCED_MODEL_PATH_OF("happybudda", 10.0f * i),
+		model->Load(REDUCED_MODEL_PATH_OF("69K", 10.0f * i),
+			REDUCED_MODEL_PATH_OF("69K", 10.0f * i),
+			REDUCED_MODEL_PATH_OF("69K", 10.0f * i),
 			TARGET_MODEL_BASEPATH);
 
 		model->SetShaders(VS_FILE_PATH, FS_FILE_PATH);
@@ -85,7 +86,7 @@ bool ObjectQualityScene::InitContents()
 			return false;
 
 		impl->models.push_back(model);
-	}
+	// }
 
 	impl->quad.InitContents();
 
@@ -118,7 +119,7 @@ static bool isStarted = false;
 void ObjectQualityScene::OnRender(int cameraIndex, float dt)
 {
 	if (isStarted) {
-		impl->timer += dt;
+		// impl->timer += dt;
 
 		if (impl->timer > 3.0f) {
 			impl->currentModelIndex = (impl->currentModelIndex + 1) % 10;

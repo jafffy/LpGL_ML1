@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <functional>
+#include <cmath>
 
 #include <ml_logging.h>
 
@@ -70,8 +71,10 @@ int LpGLEngine::Update(int currentState, std::vector<ModelObj*>& models, int cur
 		for (const auto& v : boundingVertices) {
 			glm::vec4 result = Camera::Instance().P_for_LpGL * (Camera::Instance().V_for_LpGL * glm::vec4(v, 1.0f));
 
+      float t = 0.5f;
+
 			boundingBox2D.AddPoint(result.x, result.y);
-			boundingBox2DForFocus.AddPoint(result.x * 0.25f, result.y * 0.25f);
+			boundingBox2DForFocus.AddPoint(result.x * t, result.y * t);
 		}
 
 		if ((currentState == eels_with_culling || currentState == eels_with_full_lpgl)
@@ -85,8 +88,8 @@ int LpGLEngine::Update(int currentState, std::vector<ModelObj*>& models, int cur
 			model->SetCulled(false);
 
 			if (currentState == eels_with_meshsimp || currentState == eels_with_full_lpgl) {
-				float kReductionLevel2 = LOD_LV1 / CULLING_FOV;
-				float kReductionLevel1 = LOD_LV2 / CULLING_FOV;
+				float kReductionLevel2 = fabsf((LOD_LV2 - impl->angle) / CULLING_FOV);
+				float kReductionLevel1 = fabsf(LOD_LV2 / CULLING_FOV);
 
 				if (boundingBox2DForFocus.Min.y > kReductionLevel2 || boundingBox2DForFocus.Max.y < -kReductionLevel2
 					|| boundingBox2DForFocus.Min.x > kReductionLevel2 || boundingBox2DForFocus.Max.x < -kReductionLevel2) {

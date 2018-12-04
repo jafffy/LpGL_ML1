@@ -18,7 +18,7 @@
 int main() {
 	FrameScalerSampleApp app;
 	// VaryingFocusAngleScene app;
-	//ObjectQualityScene app;
+	// ObjectQualityScene app;
 	MLNativeWindow nativeWindow(&app);
 
 	nativeWindow.Start();

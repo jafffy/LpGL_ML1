@@ -1,5 +1,6 @@
 DATAS = \
 	models/69K.obj : assets/models/69K.obj \
+	models/69K_0.5.obj : assets/models/69K_0.5.obj \
 	models/69K_1.obj : assets/models/69K_1.obj \
 	models/69K_2.obj : assets/models/69K_2.obj \
 	models/69K_10.0.obj : assets/models/69K_10.0.obj \
@@ -12,11 +13,14 @@ DATAS = \
 	models/69K_80.0.obj : assets/models/69K_80.0.obj \
 	models/69K_90.0.obj : assets/models/69K_90.0.obj \
 	models/69K_abnormal.obj : assets/models/69K_abnormal.obj \
+	models/69K_abnormal_0.5.obj : assets/models/69K_abnormal_0.5.obj \
 	models/69K_abnormal_1.obj : assets/models/69K_abnormal_1.obj \
 	models/69K_abnormal_2.obj : assets/models/69K_abnormal_2.obj \
 	models/69K_abnormal2.obj : assets/models/69K_abnormal2.obj \
+	models/69K_abnormal2_0.5.obj : assets/models/69K_abnormal2_0.5.obj \
 	models/69K_abnormal2_1.obj : assets/models/69K_abnormal2_1.obj \
 	models/69K_abnormal2_2.obj : assets/models/69K_abnormal2_2.obj \
+	models/69K_abnormal3_0.5.obj : assets/models/69K_abnormal3_0.5.obj \
 	models/69K_abnormal3.obj : assets/models/69K_abnormal3.obj \
 	models/69K_abnormal3_1.obj : assets/models/69K_abnormal3_1.obj \
 	models/69K_abnormal3_2.obj : assets/models/69K_abnormal3_2.obj \

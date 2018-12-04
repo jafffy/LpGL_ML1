@@ -34,8 +34,16 @@ public:
 	int targetFrameRate = 60;
 
 	int randomLpgLStateIndex = 0;
-	int currentLpGLState = eels_with_full_lpgl;
+/*
+  eels_without_lpgl,
+  eels_with_ds,
+  eels_with_meshsimp,
+  eels_with_culling,
+  eels_with_full_lpgl,
+*/
+	int currentLpGLState = eels_without_lpgl;
 	eExpermentLpGLState lpglStateSequence[eels_count + 1];
+
 	eExpermentLpGLState lpglStateRandomSequence[eels_count + 1];
 	eExperimentScenarioState scenarioState = eess_basic;
 
@@ -427,6 +435,18 @@ void FrameScalerSampleApp::OnPressed()
 
 #if defined(FIDELITY_SCENE)
 	if (closestModel == impl->abnormalModels[impl->abnormal_random_index]) {
+    switch (impl->abnormal_random_index) {
+    case 0:
+      ML_LOG(Info, "FIDELITY", "Left eye");
+      break;
+    case 1:
+      ML_LOG(Info, "FIDELITY", "Mouth");
+      break;
+    case 2:
+      ML_LOG(Info, "FIDELITY", "Right eye");
+      break;
+    }
+
 		ML_LOG_TAG(Info, FIDELITY_LATENCY, "Find!");
 
 		impl->distributeObjects();
