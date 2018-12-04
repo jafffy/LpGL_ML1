@@ -7,6 +7,7 @@
 #include <vector>
 #include <cfloat>
 #include <functional>
+#include <unordered_map>
 
 #ifndef _WIN32
 #include <ml_logging.h>
@@ -64,6 +65,9 @@ public:
 
 	BoundingBox3D boundingBox;
 
+	bool isLastCulled = false;
+	bool isLastVisible = false;
+
 	bool isCulled = false;
 	bool isVisible = true;
 	bool isPhysicalObject = false;
@@ -75,6 +79,8 @@ public:
 
 	float dynamics = 1.0f;
 	bool isAbnormal = false;
+
+	glm::vec2 lastProjectedPosition = glm::vec2(0, 0);
 };
 
 ModelObj::ModelObj()
@@ -98,7 +104,7 @@ static void model_load(std::string path, std::string base_path, std::function<vo
 
 	std::string warn;
 	std::string err;
-	bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, path.c_str(), base_path.c_str(), false);
+	bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, path.c_str(), base_path.c_str(), true);
 
 	for (auto shape : shapes) {
 		size_t index_offset = 0;
@@ -125,32 +131,59 @@ static void model_load(std::string path, std::string base_path, std::function<vo
 	}
 }
 
+struct MeshSet
+{
+public:
+	std::vector<glm::vec3> vertices;
+	std::vector<glm::vec3> vertices_reduced_1;
+	std::vector<glm::vec3> vertices_reduced_2;
+	BoundingBox3D boundingBox;
+};
+
+static std::unordered_map<std::string, MeshSet*> meshMap;
+
 void ModelObj::Load(std::string path, std::string reduced1_path, std::string reduced2_path, std::string base_path)
 {
-	model_load(path, base_path,
-		[&](const glm::vec3& pos, const glm::vec3& normal) {
-		impl->vertices.push_back(pos);
-		impl->vertices.push_back(normal);
+	if (meshMap.find(path) == meshMap.end()) {
+		model_load(path, base_path,
+			[&](const glm::vec3& pos, const glm::vec3& normal) {
+			impl->vertices.push_back(pos);
+			impl->vertices.push_back(normal);
 
-		impl->boundingBox.AddPoint(pos);
-	});
+			impl->boundingBox.AddPoint(pos);
+		});
 
-	impl->boundingBox.BuildGeometry();
+		impl->boundingBox.BuildGeometry();
 
-	impl->boundingSphere.position = (impl->boundingBox.Max + impl->boundingBox.Min) * 0.5f;
-	impl->boundingSphere.radius = glm::length(impl->boundingBox.Max - impl->boundingBox.Min) * 0.5f;
+		impl->boundingSphere.position = (impl->boundingBox.Max + impl->boundingBox.Min) * 0.5f;
+		impl->boundingSphere.radius = glm::length(impl->boundingBox.Max - impl->boundingBox.Min) * 0.5f;
 
-	model_load(reduced1_path, base_path,
-		[&](const glm::vec3& pos, const glm::vec3& normal) {
-		impl->vertices_reduced_1.push_back(pos);
-		impl->vertices_reduced_1.push_back(normal);
-	});
-	model_load(reduced2_path, base_path,
-		[&](const glm::vec3& pos, const glm::vec3& normal) {
-		impl->vertices_reduced_2.push_back(pos);
-		impl->vertices_reduced_2.push_back(normal);
-	});
+		model_load(reduced1_path, base_path,
+			[&](const glm::vec3& pos, const glm::vec3& normal) {
+			impl->vertices_reduced_1.push_back(pos);
+			impl->vertices_reduced_1.push_back(normal);
+		});
+		model_load(reduced2_path, base_path,
+			[&](const glm::vec3& pos, const glm::vec3& normal) {
+			impl->vertices_reduced_2.push_back(pos);
+			impl->vertices_reduced_2.push_back(normal);
+		});
 
+		auto* meshSet = new MeshSet();
+		meshSet->vertices = impl->vertices;
+		meshSet->vertices_reduced_1 = impl->vertices_reduced_1;
+		meshSet->vertices_reduced_2 = impl->vertices_reduced_2;
+		meshSet->boundingBox = impl->boundingBox;
+
+		meshMap[path] = meshSet;
+	}
+	else {
+		auto* meshSet = meshMap[path];
+		impl->vertices = meshSet->vertices;
+		impl->vertices_reduced_1 = meshSet->vertices_reduced_1;
+		impl->vertices_reduced_2 = meshSet->vertices_reduced_2;
+		impl->boundingBox = meshSet->boundingBox;
+	}
 }
 
 void ModelObj::SetShaders(std::string vertex_shader_path, std::string frag_shader_path)
@@ -288,6 +321,16 @@ const glm::vec3& ModelObj::GetPosition() const
 	return impl->position;
 }
 
+void ModelObj::SetLastProjectedPosition(glm::vec2 projectedPosition)
+{
+	impl->lastProjectedPosition = projectedPosition;
+}
+
+const glm::vec2& ModelObj::GetLastProjectedPosition() const
+{
+	return impl->lastProjectedPosition;
+}
+
 void ModelObj::SetRotation(glm::vec3 rotation)
 {
 	impl->rotation = rotation;
@@ -300,17 +343,36 @@ void ModelObj::SetScale(glm::vec3 scale)
 
 void ModelObj::SetCulled(bool isCulled)
 {
+	impl->isLastCulled = impl->isCulled;
+
 	impl->isCulled = isCulled;
+}
+
+bool ModelObj::IsCulled() const
+{
+	return impl->isCulled;
 }
 
 void ModelObj::SetVisible(bool isVisible)
 {
+	impl->isLastVisible = impl->isVisible;
+
 	impl->isVisible = isVisible;
 }
 
 bool ModelObj::IsVisible() const
 {
 	return impl->isVisible;
+}
+
+bool ModelObj::IsLastCulled() const
+{
+	return impl->isLastCulled;
+}
+
+bool ModelObj::IsLastVisible() const
+{
+	return impl->isLastVisible;
 }
 
 void ModelObj::SetReductionLevel(int n) {

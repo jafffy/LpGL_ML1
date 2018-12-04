@@ -13,10 +13,12 @@
 #include "MLNativeWindow.h"
 #include "FrameScalerSampleApp.h"
 #include "VaryingFocusAngleScene.h"
+#include "ObjectQuqlityScene.h"
 
 int main() {
-	// FrameScalerSampleApp app;
-	VaryingFocusAngleScene app;
+	FrameScalerSampleApp app;
+	// VaryingFocusAngleScene app;
+	//ObjectQualityScene app;
 	MLNativeWindow nativeWindow(&app);
 
 	nativeWindow.Start();

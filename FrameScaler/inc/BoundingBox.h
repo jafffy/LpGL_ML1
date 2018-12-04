@@ -20,6 +20,8 @@ struct BoundingBox2D
 	float Width() const { return Max.x - Min.x; }
 	float Height() const { return Max.y - Min.y; }
 
+	glm::vec2 mid() const { return (Min + Max) * 0.5f; }
+
 	void AddPoint(float x, float y)
 	{
 		Min.x = x < Min.x ? x : Min.x;

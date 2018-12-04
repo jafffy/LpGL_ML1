@@ -10,7 +10,7 @@ class LpGLEngineImpl;
 enum eExpermentLpGLState
 {
 	eels_without_lpgl,
-	eels_with_qds,
+	eels_with_ds,
 	eels_with_meshsimp,
 	eels_with_culling,
 	eels_with_full_lpgl,
@@ -34,7 +34,7 @@ public:
 
 	int Update(int currentState, std::vector<ModelObj*>& models, int currentFPS, float dt);
 
-	void SetQDSDepth(int depth);
+	void SetLODSensitivity(float angle);
 
 	static LpGLEngine& instance();
 

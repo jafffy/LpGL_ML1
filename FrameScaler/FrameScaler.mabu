@@ -14,6 +14,7 @@ SRCS = \
 	src/MLNativeWindow.cpp \
 	src/MeshLoader.cpp \
 	src/ModelObj.cpp \
+	src/ObjectQualityScene.cpp \
 	src/Quad.cpp \
 	src/ShaderUtils.cpp \
 	src/VaryingCullingAngleScene.cpp \
