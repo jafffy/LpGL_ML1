@@ -42,7 +42,7 @@ public:
   eels_with_culling,
   eels_with_full_lpgl,
 */
-	int currentLpGLState = eels_with_full_lpgl;
+	int currentLpGLState = eels_without_lpgl;
 	eExpermentLpGLState lpglStateSequence[eels_count + 1];
 
 	eExpermentLpGLState lpglStateRandomSequence[eels_count + 1];

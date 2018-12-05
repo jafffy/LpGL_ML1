@@ -23,10 +23,10 @@
 
 #define INITIAL_X 1.75
 
- //#define DYNAMIC_SCENE
+// #define DYNAMIC_SCENE
 #define FIDELITY_SCENE
 
-// #define EQUAL_ENERGY
+ #define EQUAL_ENERGY
 
 // --------------------------
 

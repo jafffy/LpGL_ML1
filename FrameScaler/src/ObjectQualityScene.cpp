@@ -45,6 +45,10 @@ public:
 
 	int currentModelIndex = 0;
 	double timer = 0.0f;
+
+	eExpermentLpGLState lpglState = eels_without_lpgl;
+
+	float quality = 10.0f;
 };
 
 ObjectQualityScene::ObjectQualityScene()
@@ -67,11 +71,10 @@ bool ObjectQualityScene::InitContents()
 	glEnable(GL_CULL_FACE);
 
 	// for (int i = 1; i < 10; ++i) {
-  int i = 1;
 		auto model = new ModelObj();
-		model->Load(REDUCED_MODEL_PATH_OF("69K", 10.0f * i),
-			REDUCED_MODEL_PATH_OF("69K", 10.0f * i),
-			REDUCED_MODEL_PATH_OF("69K", 10.0f * i),
+		model->Load(REDUCED_MODEL_PATH_OF("69K", impl->quality),
+			REDUCED_MODEL_PATH_OF("69K", impl->quality),
+			REDUCED_MODEL_PATH_OF("69K", impl->quality),
 			TARGET_MODEL_BASEPATH);
 
 		model->SetShaders(VS_FILE_PATH, FS_FILE_PATH);
@@ -148,7 +151,7 @@ void ObjectQualityScene::OnRender(int cameraIndex, float dt)
 	}
 
 	if (cameraIndex == 0) {
-		int recommended_fps = LpGLEngine::instance().Update(eels_with_full_lpgl, impl->models, impl->targetFrameRate, dt);
+		int recommended_fps = LpGLEngine::instance().Update(impl->lpglState, impl->models, impl->targetFrameRate, dt);
 		impl->targetFrameRate = recommended_fps;
 	}
 
@@ -166,6 +169,7 @@ int state = 0;
 
 void ObjectQualityScene::OnPressed()
 {
+	/*
 	if (state == 0) {
 		ML_LOG_TAG(Info, "QUALITY", "Started");
 
@@ -184,4 +188,5 @@ void ObjectQualityScene::OnPressed()
 
 		state = 0;
 	}
+	*/
 }
