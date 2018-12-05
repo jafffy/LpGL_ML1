@@ -56,7 +56,8 @@ public:
 
 	void Reset(float position_weight, float dynamics);
 
-	void SetAbnormal();
+	void SetAbnormal(int index);
+	int GetAbnormal() const;
 	bool IsAbnormal();
 
 private:

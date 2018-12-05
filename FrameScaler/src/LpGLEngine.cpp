@@ -118,8 +118,8 @@ int LpGLEngine::Update(int currentState, std::vector<ModelObj*>& models, int cur
 		model->SetLastProjectedPosition(boundingBox2D.mid());
 	}
 
-	constexpr float level1 = 0.01f / 15.0f;
-	constexpr float level2 = 0.005f / 15.0f;
+	constexpr float level1 = 0.01f / 120.0f;
+	constexpr float level2 = 0.005f / 120.0f;
 
 	if (currentState == eels_with_ds || currentState == eels_with_full_lpgl) {
 		if (currentFPS == 60) {

@@ -79,6 +79,7 @@ public:
 
 	float dynamics = 1.0f;
 	bool isAbnormal = false;
+	int abnormalIndex = -1;
 
 	glm::vec2 lastProjectedPosition = glm::vec2(0, 0);
 };
@@ -451,9 +452,15 @@ void ModelObj::Reset(float position_weight, float dynamics)
 	impl->dynamics = dynamics;
 }
 
-void ModelObj::SetAbnormal()
+void ModelObj::SetAbnormal(int i)
 {
+	impl->abnormalIndex = i;
 	impl->isAbnormal = true;
+}
+
+int ModelObj::GetAbnormal() const
+{
+	return impl->abnormalIndex;
 }
 
 bool ModelObj::IsAbnormal()
