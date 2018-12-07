@@ -211,6 +211,7 @@
     <ClCompile Include="src\FidelityScene.cpp" />
     <ClCompile Include="src\FrameScalerSampleApp.cpp" />
     <ClCompile Include="src\graphics_context_t.cpp" />
+    <ClCompile Include="src\ImageBasedSampleApp.cpp" />
     <ClCompile Include="src\lodepng.cpp" />
     <ClCompile Include="src\LpGLEngine.cpp" />
     <ClCompile Include="src\MeshLoader.cpp" />
@@ -231,6 +232,7 @@
     <ClInclude Include="inc\FidelityScene.h" />
     <ClInclude Include="inc\FrameScalerSampleApp.h" />
     <ClInclude Include="inc\graphics_context_t.h" />
+    <ClInclude Include="inc\ImageBasedDynamicsScene.h" />
     <ClInclude Include="inc\lodepng.h" />
     <ClInclude Include="inc\LpGLEngine.h" />
     <ClInclude Include="inc\MeshLoader.h" />
@@ -271,7 +273,7 @@
   </ItemGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties MLProjectMabuSyncTime="131883103638236967 (2018-12-03 오전 11:32:43 UTC)" />
+      <UserProperties MLProjectMabuSyncTime="131885701980766306 (2018-12-06 오전 11:43:18 UTC)" />
     </VisualStudio>
   </ProjectExtensions>
 </Project>

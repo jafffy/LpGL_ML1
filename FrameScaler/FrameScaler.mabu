@@ -10,6 +10,7 @@ SRCS = \
 	src/FidelityScene.cpp \
 	src/FrameScaler.cpp \
 	src/FrameScalerSampleApp.cpp \
+	src/ImageBasedSampleApp.cpp \
 	src/LpGLEngine.cpp \
 	src/MLNativeWindow.cpp \
 	src/MeshLoader.cpp \

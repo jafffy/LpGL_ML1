@@ -13,6 +13,7 @@
 #include <functional>
 #include <random>
 #include <algorithm>
+#include <chrono>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtx/intersect.hpp"
@@ -193,20 +194,20 @@ public:
 #ifdef FIDELITY_SCENE
 #ifdef EQUAL_ENERGY
 		static const char* abnormal_paths[] = {
-				ABNORMAL_MODEL_FILEPATH_HALF,
-				ABNORMAL_MODEL_FILEPATH_HALF,
-				ABNORMAL_MODEL_FILEPATH_HALF
+			ABNORMAL_MODEL_FILEPATH_HALF,
+			ABNORMAL2_MODEL_FILEPATH_HALF,
+			ABNORMAL3_MODEL_FILEPATH_HALF
 		};
 
 		static const char* abnormal_paths_res1[] = {
+			ABNORMAL_MODEL_FILEPATH_HALF,
 			ABNORMAL2_MODEL_FILEPATH_HALF,
-			ABNORMAL2_MODEL_FILEPATH_HALF,
-			ABNORMAL2_MODEL_FILEPATH_HALF
+			ABNORMAL3_MODEL_FILEPATH_HALF
 		};
 
 		static const char* abnormal_paths_res2[] = {
-			ABNORMAL3_MODEL_FILEPATH_HALF,
-			ABNORMAL3_MODEL_FILEPATH_HALF,
+			ABNORMAL_MODEL_FILEPATH_HALF,
+			ABNORMAL2_MODEL_FILEPATH_HALF,
 			ABNORMAL3_MODEL_FILEPATH_HALF
 		};
 
@@ -424,8 +425,14 @@ public:
 
 #ifndef EQUAL_ENERGY
 			if (cameraIndex == 0) {
+				auto start = std::chrono::steady_clock::now();
+
 				int recommended_fps = LpGLEngine::instance().Update(impl->currentLpGLState, impl->models, GetTargetFrameRate(), dt);
 				SetTargetFrameRate(recommended_fps);
+
+				float elapsed_time = std::chrono::duration_cast<std::chrono::microseconds>(
+					std::chrono::steady_clock::now() - start).count();
+				ML_LOG(Info, "LpGLEnergy | %lf", elapsed_time);
 			}
 #endif 
 

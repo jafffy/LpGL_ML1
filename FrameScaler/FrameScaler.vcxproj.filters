@@ -62,6 +62,9 @@
     <ClCompile Include="src\ObjectQualityScene.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
+    <ClCompile Include="src\ImageBasedSampleApp.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inc/FrameScaler.h">
@@ -122,6 +125,9 @@
       <Filter>Scene</Filter>
     </ClInclude>
     <ClInclude Include="inc\ObjectQuqlityScene.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\ImageBasedDynamicsScene.h">
       <Filter>Scene</Filter>
     </ClInclude>
   </ItemGroup>

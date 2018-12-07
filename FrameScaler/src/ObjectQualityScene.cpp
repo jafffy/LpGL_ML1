@@ -48,7 +48,7 @@ public:
 
 	eExpermentLpGLState lpglState = eels_without_lpgl;
 
-	float quality = 10.0f;
+	float quality = 40.0f;
 };
 
 ObjectQualityScene::ObjectQualityScene()
@@ -70,18 +70,24 @@ bool ObjectQualityScene::InitContents()
 	glDepthFunc(GL_LESS);
 	glEnable(GL_CULL_FACE);
 
-	// for (int i = 1; i < 10; ++i) {
+	int n = 16;
+
+	for (int i = 1; i < n; ++i) {
 		auto model = new ModelObj();
 		model->Load(REDUCED_MODEL_PATH_OF("69K", impl->quality),
 			REDUCED_MODEL_PATH_OF("69K", impl->quality),
 			REDUCED_MODEL_PATH_OF("69K", impl->quality),
 			TARGET_MODEL_BASEPATH);
 
+		float t = (float)i / n;
+		float c = 5.0f * cosf(t * 2 * M_PI);
+		float s = 5.0f * sinf(t * 2 * M_PI);
+
 		model->SetShaders(VS_FILE_PATH, FS_FILE_PATH);
 
-		model->SetPosition(glm::vec3(0, 0, -2.0f));
+		model->SetPosition(glm::vec3(c, 0, s));
 		model->SetRotation(glm::vec3(0, 0, 0));
-		model->SetScale(glm::vec3(0.30f));
+		model->SetScale(glm::vec3(0.25f));
 		model->SetVisible(true);
 		model->SetIsPhysicalObject(false);
 
@@ -89,7 +95,7 @@ bool ObjectQualityScene::InitContents()
 			return false;
 
 		impl->models.push_back(model);
-	// }
+	}
 
 	impl->quad.InitContents();
 
@@ -140,13 +146,6 @@ void ObjectQualityScene::OnRender(int cameraIndex, float dt)
 	for (int i = 0; i < impl->models.size(); ++i) {
 		auto* model = impl->models[i];
 
-		if (i == impl->currentModelIndex) {
-			model->SetVisible(true);
-		}
-		else {
-			model->SetVisible(false);
-		}
-
 		model->Update(dt);
 	}
 
@@ -177,7 +176,7 @@ void ObjectQualityScene::OnPressed()
 		isStarted = true;
 
 		state++;
-	} 
+	}
 	else if (state == 1) {
 		ML_LOG_TAG(Info, "QUALITY", "%d", (impl->currentModelIndex + 1) * 10);
 

@@ -77,6 +77,9 @@ int LpGLEngine::Update(int currentState, std::vector<ModelObj*>& models, int cur
 			boundingBox2DForFocus.AddPoint(result.x * t, result.y * t);
 		}
 
+		boundingBox2D.Build();
+		boundingBox2DForFocus.Build();
+
 		if ((currentState == eels_with_culling || currentState == eels_with_full_lpgl)
 			&& (boundingBox2D.Min.y > 1 || boundingBox2D.Max.y < -1
 				|| boundingBox2D.Min.x > 1 || boundingBox2D.Max.x < -1))
@@ -88,7 +91,7 @@ int LpGLEngine::Update(int currentState, std::vector<ModelObj*>& models, int cur
 			model->SetCulled(false);
 
 			if (currentState == eels_with_meshsimp || currentState == eels_with_full_lpgl) {
-				float kReductionLevel2 = fabsf((LOD_LV2 - impl->angle) / CULLING_FOV);
+				float kReductionLevel2 = fabsf(LOD_LV1 / CULLING_FOV);
 				float kReductionLevel1 = fabsf(LOD_LV2 / CULLING_FOV);
 
 				if (boundingBox2DForFocus.Min.y > kReductionLevel2 || boundingBox2DForFocus.Max.y < -kReductionLevel2
@@ -106,8 +109,12 @@ int LpGLEngine::Update(int currentState, std::vector<ModelObj*>& models, int cur
 
 			if ((currentState == eels_with_ds || currentState == eels_with_full_lpgl)
 				&& !model->IsLastCulled() && !model->IsCulled()) {
-				glm::vec2 diff = model->GetLastProjectedPosition() - boundingBox2D.mid();
-				float distanceSQ = glm::dot(diff, diff);
+				const auto& a = model->GetLastProjectedPosition();
+				const auto& b = boundingBox2D.mid();
+
+				float x = a.x - b.x;
+				float y = a.y - b.y;
+				float distanceSQ = x * x + y * y;
 
 				if (dynamic_score < distanceSQ) {
 					dynamic_score = distanceSQ;

@@ -9,6 +9,8 @@ struct BoundingBox2D
 	glm::vec2 Min;
 	glm::vec2 Max;
 
+	glm::vec2 _cachedMid;
+
 	BoundingBox2D()
 		: Min(FLT_MAX, FLT_MAX),
 		Max(-FLT_MAX, -FLT_MAX)
@@ -20,7 +22,13 @@ struct BoundingBox2D
 	float Width() const { return Max.x - Min.x; }
 	float Height() const { return Max.y - Min.y; }
 
-	glm::vec2 mid() const { return (Min + Max) * 0.5f; }
+	const glm::vec2& mid() const {
+		return _cachedMid;
+	}
+
+	void Build() {
+		_cachedMid = (Min + Max) * 0.5f;
+	}
 
 	void AddPoint(float x, float y)
 	{
