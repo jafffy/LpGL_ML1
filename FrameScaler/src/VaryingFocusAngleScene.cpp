@@ -48,32 +48,34 @@ bool VaryingFocusAngleScene::InitContents()
 
   int n = 64;
 
-  for (int i = 0; i < n; ++i) {
-    float t = (float)i / n;
-    float c = 5.0f * cosf(t * 2 * M_PI * 100.0f / 180.0f - M_PI * 0.5f);
-    float s = 5.0f * sinf(t * 2 * M_PI * 100.0f / 180.0f - M_PI * 0.5f);
+  for (int j = 0; j < 1; ++j) {
+	  for (int i = 0; i < n; ++i) {
+		  float t = (float)i / n;
+		  float c = 5.0f * cosf(t * 2 * M_PI * 20.0f / 180.0f - M_PI * 0.5f);
+		  float s = 5.0f * sinf(t * 2 * M_PI * 20.0f / 180.0f - M_PI * 0.5f);
 
-    auto model = new ModelObj();
-    model->Load(FOCUS_MODEL_FILEPATH,
-        FOCUS_MODEL_FILEPATH_REDUCED_1,
-        FOCUS_MODEL_FILEPATH_REDUCED_2,
-        TARGET_MODEL_BASEPATH);
+		  auto model = new ModelObj();
+		  model->Load(FOCUS_MODEL_FILEPATH,
+			  FOCUS_MODEL_FILEPATH_REDUCED_1,
+			  FOCUS_MODEL_FILEPATH_REDUCED_2,
+			  TARGET_MODEL_BASEPATH);
 
-    if (i == n / 2)
-      model->SetShaders(VS_FILE_PATH, GREEN_FS_FILE_PATH);
-    else
-      model->SetShaders(VS_FILE_PATH, FS_FILE_PATH);
+		  if (i == n / 2)
+			  model->SetShaders(VS_FILE_PATH, GREEN_FS_FILE_PATH);
+		  else
+			  model->SetShaders(VS_FILE_PATH, FS_FILE_PATH);
 
-    model->SetPosition(glm::vec3(c, 0, s));
-    model->SetRotation(glm::vec3(0, 0, -t * 2 * M_PI + M_PI * 0.5f + M_PI));
-    model->SetScale(glm::vec3(0.25f));
-    model->SetVisible(true);
-    model->SetInitialVelocity(glm::vec3((float)random() / RAND_MAX - 0.5f, 0, 0));
+		  model->SetPosition(glm::vec3(c, (j - 6 / 2) / ((float)6 * 0.5f), s));
+		  model->SetRotation(glm::vec3(0, 0, -t * 2 * M_PI + M_PI * 0.5f + M_PI));
+		  model->SetScale(glm::vec3(0.25f));
+		  model->SetVisible(true);
+		  model->SetInitialVelocity(glm::vec3((float)random() / RAND_MAX - 0.5f, 0, 0));
 
-    if (!model->Create())
-      return false;
+		  if (!model->Create())
+			  return false;
 
-    impl->models.push_back(model);
+		  impl->models.push_back(model);
+	  }
   }
 
 
@@ -84,48 +86,51 @@ bool VaryingFocusAngleScene::InitContents()
 
 void VaryingFocusAngleScene::DestroyContents()
 {
-  impl->quad.DestroyContents();
+	impl->quad.DestroyContents();
 
-  for (auto* model : impl->models) {
-    model->Destroy();
+	for (auto* model : impl->models) {
+		model->Destroy();
 
-    if (model) {
-      delete model;
-      model = nullptr;
-    }
-  }
+		if (model) {
+			delete model;
+			model = nullptr;
+		}
+	}
 
-  impl->models.clear();
+	impl->models.clear();
 }
 
 int VaryingFocusAngleScene::GetTargetFrameRate()
 {
-  return impl->targetFrameRate;
+	return impl->targetFrameRate;
 }
 
 static float timer = 0.0f;
 
 void VaryingFocusAngleScene::OnRender(int cameraIndex, float dt)
 {
-  for (int i = 0; i < impl->models.size(); ++i) {
-    auto* model = impl->models[i];
-    float t = (i % 2 == 0) ? -1 : 1;
-    model->Update(dt);
-  }
+	timer += dt;
 
-  if (cameraIndex == 0) {
-    int recommended_fps = LpGLEngine::instance().Update(eels_with_full_lpgl, impl->models, impl->targetFrameRate, dt);
-    impl->targetFrameRate = recommended_fps;
-  }
+	for (int i = 0; i < impl->models.size(); ++i) {
+		auto* model = impl->models[i];
+		float t = (i % 2 == 0) ? -1 : 1;
+		model->SetPosition(glm::vec3(model->GetPosition().x, t * 0.5f * sinf(timer), model->GetPosition().z));
+		model->Update(dt);
+	}
 
-  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	if (cameraIndex == 0) {
+		int recommended_fps = LpGLEngine::instance().Update(eels_without_lpgl, impl->models, impl->targetFrameRate, dt);
+		impl->targetFrameRate = recommended_fps;
+	}
 
-  for (auto* model : impl->models) {
-    model->Render();
-  }
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  impl->quad.Draw();
+	for (auto* model : impl->models) {
+		model->Render();
+	}
+
+	impl->quad.Draw();
 }
 
 void VaryingFocusAngleScene::OnPressed()

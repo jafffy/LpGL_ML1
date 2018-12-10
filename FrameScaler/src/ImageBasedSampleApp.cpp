@@ -15,9 +15,11 @@
 class ImageBasedDynamicSceneImpl
 {
 public:
-	std::vector<glm::u8vec3> lastFrame;
-	std::vector<glm::u8vec3> buf;
+	std::vector<glm::vec3> lastFrame;
+	std::vector<glm::vec3> buf;
 	bool isFirst = true;
+	GLuint FramebufferName = 0;
+	GLuint renderedTexture = 0;
 
 	ImageBasedDynamicSceneImpl()
 	{
@@ -45,6 +47,25 @@ ImageBasedDynamicsScene::~ImageBasedDynamicsScene()
 
 bool ImageBasedDynamicsScene::InitContents()
 {
+	glGenFramebuffers(1, &impl->FramebufferName);
+	glBindFramebuffer(GL_FRAMEBUFFER, impl->FramebufferName);
+
+	glGenTextures(1, &impl->renderedTexture);
+	glBindTexture(GL_TEXTURE_2D, impl->renderedTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1280, 960, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, impl->renderedTexture, 0);
+
+	GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
+	glDrawBuffers(1, DrawBuffers);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+		ML_LOG(Error, "Framebuffer is not complete");
+		return false;
+	}
+
 	return true;
 }
 
@@ -63,12 +84,19 @@ void ImageBasedDynamicsScene::OnRender(int cameraIndex, float dt)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	if (cameraIndex == 0) {
-		ML_LOG(Info, "SSIM_Start");
-		// ML_LOG(Info, "glReadPixels_Start");
+		glBindFramebuffer(GL_FRAMEBUFFER, impl->FramebufferName);
+		glViewport(0, 0, 1280, 760);
 
-		glReadPixels(0, 0, 1280, 960, GL_RGB, GL_UNSIGNED_BYTE, impl->buf.data());
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		// ML_LOG(Info, "glReadPixels_End");
+		ML_LOG(Info, "DYN_Start");
+		ML_LOG(Info, "glReadPixels_Start");
+
+		glReadPixels(0, 0, 1280, 960, GL_RGB, GL_FLOAT, impl->buf.data());
+
+		ML_LOG(Info, "glReadPixels_End");
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		if (impl->isFirst) {
 			impl->isFirst = false;
@@ -82,7 +110,7 @@ void ImageBasedDynamicsScene::OnRender(int cameraIndex, float dt)
 					const auto& u = impl->buf[x * 960 + y];
 					const auto& v = impl->lastFrame[x * 960 + y];
 
-					tot += (v.x - u.x) * (v.x - u.x) + (v.y - u.y) * (v.y - u.y) + (v.z - u.z) * (v.z - u.z);
+					tot += fabsf(v.x - u.x);
 				}
 			}
 			ML_LOG(Info, "%lf", tot / 1280 / 960);
@@ -134,7 +162,7 @@ void ImageBasedDynamicsScene::OnRender(int cameraIndex, float dt)
 
 		std::swap(impl->buf, impl->lastFrame);
 
-		ML_LOG(Info, "SSIM_End");
+		ML_LOG(Info, "DYN_End");
 		// ML_LOG(Info, "End");
 	}
 }

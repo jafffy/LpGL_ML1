@@ -48,7 +48,7 @@ public:
 
 	eExpermentLpGLState lpglState = eels_without_lpgl;
 
-	float quality = 40.0f;
+	float quality = 90.0f;
 };
 
 ObjectQualityScene::ObjectQualityScene()
@@ -70,7 +70,7 @@ bool ObjectQualityScene::InitContents()
 	glDepthFunc(GL_LESS);
 	glEnable(GL_CULL_FACE);
 
-	int n = 16;
+	int n = 8;
 
 	for (int i = 1; i < n; ++i) {
 		auto model = new ModelObj();

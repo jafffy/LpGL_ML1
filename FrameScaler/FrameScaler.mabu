@@ -28,3 +28,4 @@ USES = \
 	ml_sdk \
 	stdc++
 
+# DEFS.device = $(SCENE_TYPE) $(ENERGY_EQUAL)

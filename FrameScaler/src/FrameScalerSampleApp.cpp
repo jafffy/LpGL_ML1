@@ -43,7 +43,17 @@ public:
   eels_with_culling,
   eels_with_full_lpgl,
 */
+#ifdef LPGL_DS
+	int currentLpGLState = eels_with_ds;
+#elif LPGL_MESHSIMP
+	int currentLpGLState = eels_with_meshsimp;
+#elif LPGL_CULLING
+	int currentLpGLState = eels_with_culling;
+#elif LPGL_FULL
+	int currentLpGLState = eels_with_full_lpgl;
+#else
 	int currentLpGLState = eels_without_lpgl;
+#endif
 	eExpermentLpGLState lpglStateSequence[eels_count + 1];
 
 	eExpermentLpGLState lpglStateRandomSequence[eels_count + 1];
@@ -432,7 +442,7 @@ public:
 
 				float elapsed_time = std::chrono::duration_cast<std::chrono::microseconds>(
 					std::chrono::steady_clock::now() - start).count();
-				ML_LOG(Info, "LpGLEnergy | %lf", elapsed_time);
+				// ML_LOG(Info, "LpGLEnergy | %lf", elapsed_time);
 			}
 #endif 
 

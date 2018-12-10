@@ -17,8 +17,8 @@
 #include "ImageBasedDynamicsScene.h"
 
 int main() {
-	FrameScalerSampleApp app;
-	// VaryingFocusAngleScene app;
+	// FrameScalerSampleApp app;
+	VaryingFocusAngleScene app;
 	// ObjectQualityScene app;
 	// ImageBasedDynamicsScene app;
 	MLNativeWindow nativeWindow(&app);
