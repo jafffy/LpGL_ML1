@@ -20,9 +20,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src/FrameScaler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\graphics_context_t.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -53,9 +50,6 @@
     <ClCompile Include="src\FidelityScene.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
-    <ClCompile Include="src\VaryingCullingAngleScene.cpp">
-      <Filter>Scene</Filter>
-    </ClCompile>
     <ClCompile Include="src\VaryingFocusAngleScene.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
@@ -64,6 +58,12 @@
     </ClCompile>
     <ClCompile Include="src\ImageBasedSampleApp.cpp">
       <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\UDPScene.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Main.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -115,9 +115,6 @@
     <ClInclude Include="inc\FidelityScene.h">
       <Filter>Scene</Filter>
     </ClInclude>
-    <ClInclude Include="inc\VaryingCullingAngleScene.h">
-      <Filter>Scene</Filter>
-    </ClInclude>
     <ClInclude Include="inc\VaryingFocusAngleScene.h">
       <Filter>Scene</Filter>
     </ClInclude>
@@ -128,6 +125,9 @@
       <Filter>Scene</Filter>
     </ClInclude>
     <ClInclude Include="inc\ImageBasedDynamicsScene.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\UDPScene.h">
       <Filter>Scene</Filter>
     </ClInclude>
   </ItemGroup>

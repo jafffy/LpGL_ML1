@@ -207,7 +207,7 @@
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
   <ItemGroup>
-    <ClCompile Include="src/FrameScaler.cpp" />
+    <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\FidelityScene.cpp" />
     <ClCompile Include="src\FrameScalerSampleApp.cpp" />
     <ClCompile Include="src\graphics_context_t.cpp" />
@@ -220,7 +220,7 @@
     <ClCompile Include="src\ObjectQualityScene.cpp" />
     <ClCompile Include="src\Quad.cpp" />
     <ClCompile Include="src\ShaderUtils.cpp" />
-    <ClCompile Include="src\VaryingCullingAngleScene.cpp" />
+    <ClCompile Include="src\UDPScene.cpp" />
     <ClCompile Include="src\VaryingFocusAngleScene.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -243,7 +243,7 @@
     <ClInclude Include="inc\Quad.h" />
     <ClInclude Include="inc\ShaderUtils.h" />
     <ClInclude Include="inc\tinyobjloader.h" />
-    <ClInclude Include="inc\VaryingCullingAngleScene.h" />
+    <ClInclude Include="inc\UDPScene.h" />
     <ClInclude Include="inc\VaryingFocusAngleScene.h" />
   </ItemGroup>
   <ItemGroup>
@@ -273,7 +273,7 @@
   </ItemGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties MLProjectMabuSyncTime="131889053351582402 (2018-12-10 오전 8:48:55 UTC)" />
+      <UserProperties MLProjectMabuSyncTime="131891682660248227 (2018-12-13 오전 9:51:06 UTC)" />
     </VisualStudio>
   </ProjectExtensions>
 </Project>

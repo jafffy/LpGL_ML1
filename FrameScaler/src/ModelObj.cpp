@@ -105,7 +105,11 @@ static void model_load(std::string path, std::string base_path, std::function<vo
 
 	std::string warn;
 	std::string err;
-	bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, path.c_str(), base_path.c_str(), true);
+	bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, path.c_str(), base_path.c_str(), false);
+
+	if (!ret) {
+		ML_LOG(Error, "%s/%s is not loaded", base_path.c_str(), path.c_str());
+	}
 
 	for (auto shape : shapes) {
 		size_t index_offset = 0;
@@ -118,7 +122,7 @@ static void model_load(std::string path, std::string base_path, std::function<vo
 
 				float x = attrib.vertices[3 * idx.vertex_index + 0];
 				float y = attrib.vertices[3 * idx.vertex_index + 1];
-				float z = attrib.vertices[3 * idx.vertex_index + 2];
+				float z = -attrib.vertices[3 * idx.vertex_index + 2];
 
 				float nx = attrib.normals[3 * idx.normal_index + 0];
 				float ny = attrib.normals[3 * idx.normal_index + 1];

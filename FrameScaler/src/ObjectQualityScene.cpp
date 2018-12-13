@@ -48,7 +48,7 @@ public:
 
 	eExpermentLpGLState lpglState = eels_without_lpgl;
 
-	float quality = 90.0f;
+	float quality = 10.0f;
 };
 
 ObjectQualityScene::ObjectQualityScene()
@@ -67,16 +67,19 @@ ObjectQualityScene::~ObjectQualityScene()
 bool ObjectQualityScene::InitContents()
 {
 	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS);
+	glCullFace(GL_BACK);
+	glFrontFace(GL_CCW);
+	glDepthFunc(GL_LEQUAL);
 	glEnable(GL_CULL_FACE);
+	glClearDepthf(1.0f);
 
 	int n = 8;
 
 	for (int i = 1; i < n; ++i) {
 		auto model = new ModelObj();
-		model->Load(REDUCED_MODEL_PATH_OF("69K", impl->quality),
-			REDUCED_MODEL_PATH_OF("69K", impl->quality),
-			REDUCED_MODEL_PATH_OF("69K", impl->quality),
+		model->Load(REDUCED_MODEL_PATH_OF("69K_abnormal3", impl->quality),
+			REDUCED_MODEL_PATH_OF("69K_abnormal3", impl->quality),
+			REDUCED_MODEL_PATH_OF("69K_abnormal3", impl->quality),
 			TARGET_MODEL_BASEPATH);
 
 		float t = (float)i / n;
@@ -86,8 +89,8 @@ bool ObjectQualityScene::InitContents()
 		model->SetShaders(VS_FILE_PATH, FS_FILE_PATH);
 
 		model->SetPosition(glm::vec3(c, 0, s));
-		model->SetRotation(glm::vec3(0, 0, 0));
-		model->SetScale(glm::vec3(0.25f));
+		model->SetRotation(glm::vec3(0, 0, M_PI_2));
+		model->SetScale(glm::vec3(0.75f));
 		model->SetVisible(true);
 		model->SetIsPhysicalObject(false);
 

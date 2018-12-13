@@ -23,7 +23,10 @@
 
 #define INITIAL_X 1.75
 
+// #define LPGL_FULL
+
 // #define DYNAMIC_SCENE
+
 // #define FIDELITY_SCENE
 
 // #define EQUAL_ENERGY
