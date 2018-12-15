@@ -130,6 +130,9 @@
     <ClInclude Include="inc\UDPScene.h">
       <Filter>Scene</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Simplify.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="manifest.xml" />

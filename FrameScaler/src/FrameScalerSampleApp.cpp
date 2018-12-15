@@ -27,6 +27,16 @@
 
 #include "Quad.h"
 
+#ifdef MAXIMUM_ENERGY
+
+#include <sys/time.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <thread>
+
+#endif
+
 class FrameScalerSampleAppImpl
 {
 public:
@@ -77,6 +87,10 @@ public:
 	int numMissed = 0;
 	int numTargets = 0;
 #endif // DYNAMIC_SCENE
+
+#ifdef MAXIMUM_ENERGY
+	std::thread t;
+#endif
 
 	FrameScalerSampleAppImpl()
 	{
@@ -188,8 +202,8 @@ public:
 
 		for (int i = 0; i < n; ++i) {
 			float t = (float)i / n;
-			float c = 5.0f * cosf(t * 2 * M_PI);
-			float s = 5.0f * sinf(t * 2 * M_PI);
+			float c = 5.0f * cosf(t * 2 * M_PI * 0.1f);
+			float s = 5.0f * sinf(t * 2 * M_PI * 0.1f);
 
 			ModelObj* model = models[i];
 
@@ -283,7 +297,7 @@ public:
 #endif
 			model->SetShaders(VS_FILE_PATH, FS_FILE_PATH);
 
-			model->SetScale(glm::vec3(0.25f));
+			model->SetScale(glm::vec3(1.0f));
 			model->SetVisible(true);
 			if (!model->Create())
 				return false;
@@ -300,315 +314,388 @@ public:
 
 		return true;
 	}
-		};
+};
 
-		FrameScalerSampleApp::FrameScalerSampleApp()
-		{
-			impl = new FrameScalerSampleAppImpl();
-		}
-
-		FrameScalerSampleApp::~FrameScalerSampleApp()
-		{
-			if (impl) {
-				delete impl;
-				impl = nullptr;
-			}
-		}
-
-		int FrameScalerSampleApp::Start()
-		{
-			return 0;
-		}
-
-		void FrameScalerSampleApp::Cleanup()
-		{
-		}
-
-		void FrameScalerSampleAppImpl::evaluateStateMachine()
-		{
-			const float session_period = 5.0f;
-
-			const float k_high_dynamics = 2.0f;
-			const float k_low_dynamics = 0.5f;
-			const float k_mid_dynamics = 1.0f;
-
-			const float k_left_position = 0.90f;
-			const float k_right_position = 0.10f;
-			const float k_mid_position = 0.50f;
-
-			if (scenarioState == eess_basic) {
-				if (timer > session_period) {
-					ML_LOG_TAG(Verbose, "BENCHMARK", "eess_high_dynamics");
-					dynamics = k_high_dynamics;
-					scenarioState = eess_high_dynamics;
-					timer = 0.0f;
-
-					for (auto* model : models)
-						model->Reset(k_mid_position, k_high_dynamics);
-				}
-			}
-			else if (scenarioState == eess_high_dynamics) {
-				if (timer > session_period) {
-					ML_LOG(Verbose, "eess_low_dynamics");
-					dynamics = k_low_dynamics;
-					scenarioState = eess_low_dynamics;
-					timer = 0.0f;
-
-					for (auto* model : models)
-						model->Reset(k_mid_position, k_low_dynamics);
-				}
-			}
-			else if (scenarioState == eess_low_dynamics) {
-				if (timer > session_period) {
-					ML_LOG(Verbose, "eess_left_most");
-					dynamics = k_mid_dynamics;
-					position_weight = k_left_position;
-					scenarioState = eess_left_most;
-					timer = 0.0f;
-
-					for (auto* model : models)
-						model->Reset(k_left_position, k_mid_dynamics);
-				}
-			}
-			else if (scenarioState == eess_left_most) {
-				if (timer > session_period) {
-					ML_LOG(Verbose, "eess_right_most");
-					dynamics = k_mid_dynamics;
-					position_weight = k_right_position;
-					scenarioState = eess_right_most;
-					timer = 0.0f;
-
-					for (auto* model : models)
-						model->Reset(k_right_position, k_mid_dynamics);
-				}
-			}
-			else if (scenarioState == eess_right_most) {
-				if (timer > session_period) {
-					ML_LOG(Verbose, "eess_basic");
-					dynamics = k_mid_dynamics;
-					position_weight = k_mid_position;
-					scenarioState = eess_basic;
-					timer = 0.0f;
-
-					for (auto* model : models)
-						model->Reset(k_mid_position, k_mid_dynamics);
-				}
-			}
-		}
-
-		void FrameScalerSampleApp::Update(float dt)
-		{
-			float timer = impl->timer;
-
-			impl->evaluateStateMachine();
-
-			impl->timer += dt;
-
-			for (auto* model : impl->models) {
-				if (model->IsVisible()) {
-					const auto& p = model->GetPosition();
-
-					if (p.y < -1) {
-						model->Reset(0.5f, 1.0f);
-#ifdef DYNAMIC_SCENE
-						impl->numTargets++;
+#ifdef MAXIMUM_ENERGY
+#define BUFSIZE 8196
+static char buf[BUFSIZE];
+static const char* server_name = "210.107.198.216";
+static const int server_port = 7080;
 #endif
-					}
 
-					model->Update(dt);
-				}
-			}
+FrameScalerSampleApp::FrameScalerSampleApp()
+{
+	impl = new FrameScalerSampleAppImpl();
+}
+
+FrameScalerSampleApp::~FrameScalerSampleApp()
+{
+	if (impl) {
+		delete impl;
+		impl = nullptr;
+	}
+}
+
+int FrameScalerSampleApp::Start()
+{
+	return 0;
+}
+
+void FrameScalerSampleApp::Cleanup()
+{
+}
+
+void FrameScalerSampleAppImpl::evaluateStateMachine()
+{
+	const float session_period = 5.0f;
+
+	const float k_high_dynamics = 2.0f;
+	const float k_low_dynamics = 0.5f;
+	const float k_mid_dynamics = 1.0f;
+
+	const float k_left_position = 0.90f;
+	const float k_right_position = 0.10f;
+	const float k_mid_position = 0.50f;
+
+	if (scenarioState == eess_basic) {
+		if (timer > session_period) {
+			ML_LOG_TAG(Verbose, "BENCHMARK", "eess_high_dynamics");
+			dynamics = k_high_dynamics;
+			scenarioState = eess_high_dynamics;
+			timer = 0.0f;
+
+			for (auto* model : models)
+				model->Reset(k_mid_position, k_high_dynamics);
 		}
+	}
+	else if (scenarioState == eess_high_dynamics) {
+		if (timer > session_period) {
+			ML_LOG(Verbose, "eess_low_dynamics");
+			dynamics = k_low_dynamics;
+			scenarioState = eess_low_dynamics;
+			timer = 0.0f;
 
-		void FrameScalerSampleApp::OnRender(int cameraIndex, float dt)
-		{
-			static bool isFirstRender = true;
+			for (auto* model : models)
+				model->Reset(k_mid_position, k_low_dynamics);
+		}
+	}
+	else if (scenarioState == eess_low_dynamics) {
+		if (timer > session_period) {
+			ML_LOG(Verbose, "eess_left_most");
+			dynamics = k_mid_dynamics;
+			position_weight = k_left_position;
+			scenarioState = eess_left_most;
+			timer = 0.0f;
 
-			if (isFirstRender) {
-				ML_LOG_TAG(Info, LATENCY, "First Render");
-				isFirstRender = false;
+			for (auto* model : models)
+				model->Reset(k_left_position, k_mid_dynamics);
+		}
+	}
+	else if (scenarioState == eess_left_most) {
+		if (timer > session_period) {
+			ML_LOG(Verbose, "eess_right_most");
+			dynamics = k_mid_dynamics;
+			position_weight = k_right_position;
+			scenarioState = eess_right_most;
+			timer = 0.0f;
+
+			for (auto* model : models)
+				model->Reset(k_right_position, k_mid_dynamics);
+		}
+	}
+	else if (scenarioState == eess_right_most) {
+		if (timer > session_period) {
+			ML_LOG(Verbose, "eess_basic");
+			dynamics = k_mid_dynamics;
+			position_weight = k_mid_position;
+			scenarioState = eess_basic;
+			timer = 0.0f;
+
+			for (auto* model : models)
+				model->Reset(k_mid_position, k_mid_dynamics);
+		}
+	}
+}
+
+void FrameScalerSampleApp::Update(float dt)
+{
+	float timer = impl->timer;
+
+	impl->evaluateStateMachine();
+
+	impl->timer += dt;
+
+	for (auto* model : impl->models) {
+		if (model->IsVisible()) {
+			const auto& p = model->GetPosition();
+
+			if (p.y < -1) {
+				model->Reset(0.5f, 1.0f);
+#ifdef DYNAMIC_SCENE
+				impl->numTargets++;
+#endif
 			}
 
-			auto currentState = impl->lpglStateSequence[impl->currentLpGLState];
+			model->Update(dt);
+		}
+	}
+}
 
-			Update(dt);
+void FrameScalerSampleApp::OnRender(int cameraIndex, float dt)
+{
+	static bool isFirstRender = true;
 
+	if (isFirstRender) {
+		ML_LOG_TAG(Info, LATENCY, "First Render");
+		isFirstRender = false;
+	}
+
+	auto currentState = impl->lpglStateSequence[impl->currentLpGLState];
+
+	Update(dt);
+
+	/*
 #ifndef EQUAL_ENERGY
-			if (cameraIndex == 0) {
-				auto start = std::chrono::steady_clock::now();
+	if (cameraIndex == 0) {
+		auto start = std::chrono::steady_clock::now();
 
-				int recommended_fps = LpGLEngine::instance().Update(impl->currentLpGLState, impl->models, GetTargetFrameRate(), dt);
-				SetTargetFrameRate(recommended_fps);
+		int recommended_fps = LpGLEngine::instance().Update(impl->currentLpGLState, impl->models, GetTargetFrameRate(), dt);
+		SetTargetFrameRate(recommended_fps);
 
-				float elapsed_time = std::chrono::duration_cast<std::chrono::microseconds>(
-					std::chrono::steady_clock::now() - start).count();
-				// ML_LOG(Info, "LpGLEnergy | %lf", elapsed_time);
-			}
+		float elapsed_time = std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::steady_clock::now() - start).count();
+		// ML_LOG(Info, "LpGLEnergy | %lf", elapsed_time);
+	}
 #endif 
+*/
 
-			glClearColor(0.0, 0.0, 0.0, 0.0);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClearColor(0.0, 0.0, 0.0, 0.0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			for (auto* model : impl->models)
-				model->Render();
+	for (auto* model : impl->models)
+		model->Render();
 
-			impl->quad.Draw();
+	impl->quad.Draw();
+}
+
+int FrameScalerSampleApp::GetTargetFrameRate()
+{
+	auto currentState = impl->lpglStateSequence[impl->currentLpGLState];
+
+	if (currentState == eels_with_full_lpgl
+		|| currentState == eels_with_ds)
+		return impl->targetFrameRate;
+	else
+		return 60;
+}
+
+void FrameScalerSampleApp::SetTargetFrameRate(int targetFrameRate)
+{
+	impl->targetFrameRate = targetFrameRate;
+}
+
+bool FrameScalerSampleApp::InitContents()
+{
+	srandom(time(0));
+
+#ifdef MAXIMUM_ENERGY
+	for (int i = 0; i < BUFSIZE; ++i) {
+		buf[i] = random() % 255 + 1;
+	}
+
+	impl->t = std::thread([&]() {
+		struct sockaddr_in server_address;
+		memset(&server_address, 0, sizeof(server_address));
+		server_address.sin_family = AF_INET;
+
+		inet_pton(AF_INET, server_name, &server_address.sin_addr);
+
+		server_address.sin_port = htons(server_port);
+
+		int sock;
+		if ((sock = socket(PF_INET, SOCK_DGRAM, 0)) < 0) {
+			printf("could not create socket\n");
+			return;
 		}
 
-		int FrameScalerSampleApp::GetTargetFrameRate()
-		{
-			auto currentState = impl->lpglStateSequence[impl->currentLpGLState];
+		double timer = 0.0f;
 
-			if (currentState == eels_with_full_lpgl
-				|| currentState == eels_with_ds)
-				return impl->targetFrameRate;
-			else
-				return 60;
-		}
+		struct timeval t1, t2;
 
-		void FrameScalerSampleApp::SetTargetFrameRate(int targetFrameRate)
-		{
-			impl->targetFrameRate = targetFrameRate;
-		}
+		gettimeofday(&t1, nullptr);
 
-		bool FrameScalerSampleApp::InitContents()
-		{
-			srandom(time(0));
+		while (timer < 120.0f) {
+			struct timeval start_to_send;
+			gettimeofday(&start_to_send, nullptr);
 
-			impl->lpglStateSequence[0] = eels_without_lpgl;
-			impl->lpglStateSequence[1] = eels_with_ds;
-			impl->lpglStateSequence[2] = eels_with_meshsimp;
-			impl->lpglStateSequence[3] = eels_with_culling;
-			impl->lpglStateSequence[4] = eels_with_full_lpgl;
+			// for (int i = 0; i < 1024; ++i) {
+			int ret = sendto(sock, buf, BUFSIZE, 0,
+				(struct sockaddr*)&server_address, sizeof(server_address));
 
-			int currentLpGLstateSeq = 0;
-
-			while (currentLpGLstateSeq < eels_count) {
-				auto state = (eExpermentLpGLState)(random() % eels_count);
-
-				for (int j = 0; j < currentLpGLstateSeq; ++j) {
-					if (impl->lpglStateRandomSequence[j] == state) {
-						continue;
-					}
-				}
-
-				impl->lpglStateRandomSequence[currentLpGLstateSeq++] = state;
+			if (ret == -1) {
+				char* err = strerror(errno);
+				ML_LOG(Error, "error: %s", err);
 			}
+			// }
+
+			struct timeval end_to_send;
+			gettimeofday(&end_to_send, nullptr);
+
+			{
+				useconds_t elapsedTime = (end_to_send.tv_sec - start_to_send.tv_sec) * 1000000;
+				elapsedTime += end_to_send.tv_usec - start_to_send.tv_usec;
+
+				if (1000000 - elapsedTime > 0) {
+					// usleep(1000000 - elapsedTime);
+				}
+			}
+
+			gettimeofday(&t2, nullptr);
+
+			double elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
+			elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
+
+			timer = elapsedTime / 1000.0f;
+		}
+
+		close(sock);
+	});
+#endif
+
+	impl->lpglStateSequence[0] = eels_without_lpgl;
+	impl->lpglStateSequence[1] = eels_with_ds;
+	impl->lpglStateSequence[2] = eels_with_meshsimp;
+	impl->lpglStateSequence[3] = eels_with_culling;
+	impl->lpglStateSequence[4] = eels_with_full_lpgl;
+
+	int currentLpGLstateSeq = 0;
+
+	while (currentLpGLstateSeq < eels_count) {
+		auto state = (eExpermentLpGLState)(random() % eels_count);
+
+		for (int j = 0; j < currentLpGLstateSeq; ++j) {
+			if (impl->lpglStateRandomSequence[j] == state) {
+				continue;
+			}
+		}
+
+		impl->lpglStateRandomSequence[currentLpGLstateSeq++] = state;
+	}
 
 #ifdef TRANSIT_LPGL_STATE
-			impl->currentLpGLState = impl->lpglStateRandomSequence[impl->randomLpgLStateIndex++];
-			ML_LOG_TAG(Info, "STATE", "%d\n", impl->currentLpGLState);
+	impl->currentLpGLState = impl->lpglStateRandomSequence[impl->randomLpgLStateIndex++];
+	ML_LOG_TAG(Info, "STATE", "%d\n", impl->currentLpGLState);
 #endif
 
-			glEnable(GL_DEPTH_TEST);
-			glDepthFunc(GL_LESS);
-			glEnable(GL_CULL_FACE);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+	glEnable(GL_CULL_FACE);
 
-			impl->generateModels();
+	impl->generateModels();
 
-			impl->quad.InitContents();
+	impl->quad.InitContents();
 
-			return true;
+	return true;
+}
+
+void FrameScalerSampleApp::DestroyContents()
+{
+	impl->quad.DestroyContents();
+
+	for (auto* model : impl->models) {
+		model->Destroy();
+
+		if (model) {
+			delete model;
+			model = nullptr;
 		}
+	}
 
-		void FrameScalerSampleApp::DestroyContents()
-		{
-			impl->quad.DestroyContents();
+	impl->models.clear();
+}
 
-			for (auto* model : impl->models) {
-				model->Destroy();
+bool fidelityStart = true;
 
-				if (model) {
-					delete model;
-					model = nullptr;
-				}
-			}
-
-			impl->models.clear();
-		}
-
-		bool fidelityStart = true;
-
-		void FrameScalerSampleApp::OnPressed()
-		{
-			ModelObj* closestModel = nullptr;
-			float maxDistance = -FLT_MAX;
+void FrameScalerSampleApp::OnPressed()
+{
+	ModelObj* closestModel = nullptr;
+	float maxDistance = -FLT_MAX;
 
 #ifdef FIDELITY_SCENE
-			if (fidelityStart) {
-				ML_LOG_TAG(Info, "FIDELITY", "Start");
-				fidelityStart = false;
-				return;
-			}
+	if (fidelityStart) {
+		ML_LOG_TAG(Info, "FIDELITY", "Start");
+		fidelityStart = false;
+		return;
+	}
 #endif
-			
-			for (auto* model : impl->models) {
-				std::vector<glm::vec3> boundingVertices = model->GetBoundingBox();
-				auto boundingBox2D = new BoundingBox2D();
 
-				for (const auto& v : boundingVertices) {
-					glm::vec4 result = Camera::Instance().P_for_LpGL * (Camera::Instance().V_for_LpGL * glm::vec4(v, 1.0f));
+	for (auto* model : impl->models) {
+		std::vector<glm::vec3> boundingVertices = model->GetBoundingBox();
+		auto boundingBox2D = new BoundingBox2D();
 
-					boundingBox2D->AddPoint(result.x, result.y);
+		for (const auto& v : boundingVertices) {
+			glm::vec4 result = Camera::Instance().P_for_LpGL * (Camera::Instance().V_for_LpGL * glm::vec4(v, 1.0f));
 
-					if (!(boundingBox2D->Min.y > 0.01 || boundingBox2D->Max.y < -0.01
-						|| boundingBox2D->Min.x > 0.01 || boundingBox2D->Max.x < -0.01)) {
+			boundingBox2D->AddPoint(result.x, result.y);
 
-						if (maxDistance < result.z) {
-							closestModel = model;
-							maxDistance = result.z;
-						}
-					}
+			if (!(boundingBox2D->Min.y > 0.01 || boundingBox2D->Max.y < -0.01
+				|| boundingBox2D->Min.x > 0.01 || boundingBox2D->Max.x < -0.01)) {
+
+				if (maxDistance < result.z) {
+					closestModel = model;
+					maxDistance = result.z;
 				}
 			}
+		}
+	}
 
-			if (!closestModel) {
+	if (!closestModel) {
 #ifdef DYNAMIC_SCENE
-				impl->numMissed++;
-				ML_LOG_TAG(Info, HIT_ACCURACY, "hit: %d, miss: %d, acc: %f", impl->numHit, impl->numMissed, (float)impl->numHit / (impl->numHit + impl->numMissed));
+		impl->numMissed++;
+		ML_LOG_TAG(Info, HIT_ACCURACY, "hit: %d, miss: %d, acc: %f", impl->numHit, impl->numMissed, (float)impl->numHit / (impl->numHit + impl->numMissed));
 #endif // DYNAMIC_SCENE
-				return;
-			}
+		return;
+	}
 
 #if defined(FIDELITY_SCENE)
 
 
-			static int last_index = -1;
+	static int last_index = -1;
 
-			int abnormal_index =
-				closestModel == impl->abnormalModels[impl->abnormal_random_index] ?
-				impl->abnormal_random_index : -1;
-			abnormal_index =
-				closestModel == impl->abnormalModels[impl->abnormal_random_index + 3] ?
-				impl->abnormal_random_index + 3 : abnormal_index;
+	int abnormal_index =
+		closestModel == impl->abnormalModels[impl->abnormal_random_index] ?
+		impl->abnormal_random_index : -1;
+	abnormal_index =
+		closestModel == impl->abnormalModels[impl->abnormal_random_index + 3] ?
+		impl->abnormal_random_index + 3 : abnormal_index;
 
-			if (abnormal_index != last_index) {
-				if (last_index == -1) {
-					last_index = abnormal_index;
-					ML_LOG_TAG(Info, FIDELITY_LATENCY, "One more!");
-					return;
-				}
+	if (abnormal_index != last_index) {
+		if (last_index == -1) {
+			last_index = abnormal_index;
+			ML_LOG_TAG(Info, FIDELITY_LATENCY, "One more!");
+			return;
+		}
 
-				ML_LOG_TAG(Info, FIDELITY_LATENCY, "Find!");
+		ML_LOG_TAG(Info, FIDELITY_LATENCY, "Find!");
 
-				last_index = -1;
-				impl->distributeObjects();
+		last_index = -1;
+		impl->distributeObjects();
 
 #ifdef TRANSIT_LPGL_STATE
-				impl->currentLpGLState = impl->lpglStateRandomSequence[impl->randomLpgLStateIndex++];
-				ML_LOG_TAG(Info, "STATE", "%d\n", impl->currentLpGLState);
+		impl->currentLpGLState = impl->lpglStateRandomSequence[impl->randomLpgLStateIndex++];
+		ML_LOG_TAG(Info, "STATE", "%d\n", impl->currentLpGLState);
 #endif
 
-				ML_LOG_TAG(Info, FIDELITY_LATENCY, "Start to finding");
-				fidelityStart = true;
-			}
+		ML_LOG_TAG(Info, FIDELITY_LATENCY, "Start to finding");
+		fidelityStart = true;
+	}
 #elif defined(DYNAMIC_SCENE)
-			impl->numHit++;
-			ML_LOG_TAG(Info, HIT_ACCURACY, "num total: %d, hit: %d, miss: %d, acc: %f", impl->numTargets, impl->numHit, impl->numMissed, (float)impl->numHit / impl->numTargets);
+	impl->numHit++;
+	ML_LOG_TAG(Info, HIT_ACCURACY, "num total: %d, hit: %d, miss: %d, acc: %f", impl->numTargets, impl->numHit, impl->numMissed, (float)impl->numHit / impl->numTargets);
 #endif
 
 #ifdef DYNAMIC_SCENE
-			closestModel->Reset(0.5f, 1.0f);
-			impl->numTargets++;
+	closestModel->Reset(0.5f, 1.0f);
+	impl->numTargets++;
 #endif
-		}
+}

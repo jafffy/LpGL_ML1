@@ -51,6 +51,9 @@ public:
 	void SetIsPhysicalObject(bool isPhysicalObject);
 	void SetInitialVelocity(const glm::vec3& v0);
 
+	void SetQuality(float quality);
+	float GetQuality() const;
+
 	std::vector<glm::vec3> GetBoundingBox() const;
 	BoundingSphere GetBoundingSphere() const;
 

@@ -3,11 +3,15 @@
 #include "ModelObj.h"
 #include "LpGLEngine.h"
 #include "Experiment.h"
+#include "BoundingBox.h"
+#include "Camera.h"
 
 #include <ml_logging.h>
 
 #include <vector>
 #include <cstdlib>
+#include <random>
+#include <algorithm>
 
 #include <GLES3/gl3.h>
 #include <GLES3/gl3ext.h>
@@ -48,7 +52,7 @@ public:
 
 	eExpermentLpGLState lpglState = eels_without_lpgl;
 
-	float quality = 10.0f;
+	float quality = 0.0f;
 };
 
 ObjectQualityScene::ObjectQualityScene()
@@ -73,13 +77,19 @@ bool ObjectQualityScene::InitContents()
 	glEnable(GL_CULL_FACE);
 	glClearDepthf(1.0f);
 
-	int n = 8;
+	std::random_device rd;
+	std::mt19937 g(rd());
 
-	for (int i = 1; i < n; ++i) {
+	float quality_scores[] = { 9, 9, 9, 9, 0, 9, 9, 9, 9, 9, 9 };
+	// std::shuffle(quality_scores, quality_scores + 11, g);
+
+	int n = 11;
+
+	for (int i = 0; i < n; ++i) {
 		auto model = new ModelObj();
-		model->Load(REDUCED_MODEL_PATH_OF("69K_abnormal3", impl->quality),
-			REDUCED_MODEL_PATH_OF("69K_abnormal3", impl->quality),
-			REDUCED_MODEL_PATH_OF("69K_abnormal3", impl->quality),
+		model->Load(REDUCED_MODEL_PATH_OF("69K_abnormal3", 10.0f * quality_scores[i]),
+			REDUCED_MODEL_PATH_OF("69K_abnormal3", 10.0f * quality_scores[i]),
+			REDUCED_MODEL_PATH_OF("69K_abnormal3", 10.0f * quality_scores[i]),
 			TARGET_MODEL_BASEPATH);
 
 		float t = (float)i / n;
@@ -89,10 +99,11 @@ bool ObjectQualityScene::InitContents()
 		model->SetShaders(VS_FILE_PATH, FS_FILE_PATH);
 
 		model->SetPosition(glm::vec3(c, 0, s));
-		model->SetRotation(glm::vec3(0, 0, M_PI_2));
+		model->SetRotation(glm::vec3(0, 0, -t * 2 * M_PI - M_PI_2));
 		model->SetScale(glm::vec3(0.75f));
 		model->SetVisible(true);
 		model->SetIsPhysicalObject(false);
+		model->SetQuality(10.0f * quality_scores[i]);
 
 		if (!model->Create())
 			return false;
@@ -171,24 +182,32 @@ int state = 0;
 
 void ObjectQualityScene::OnPressed()
 {
-	/*
-	if (state == 0) {
-		ML_LOG_TAG(Info, "QUALITY", "Started");
+	ModelObj* closestModel = nullptr;
+	float maxDistance = -FLT_MAX;
 
-		impl->timer = 0.0f;
-		isStarted = true;
+	for (auto* model : impl->models) {
+		std::vector<glm::vec3> boundingVertices = model->GetBoundingBox();
+		auto boundingBox2D = new BoundingBox2D();
 
-		state++;
+		for (const auto& v : boundingVertices) {
+			glm::vec4 result = Camera::Instance().P_for_LpGL * (Camera::Instance().V_for_LpGL * glm::vec4(v, 1.0f));
+
+			boundingBox2D->AddPoint(result.x, result.y);
+
+			if (!(boundingBox2D->Min.y > 0.01 || boundingBox2D->Max.y < -0.01
+				|| boundingBox2D->Min.x > 0.01 || boundingBox2D->Max.x < -0.01)) {
+
+				if (maxDistance < result.z) {
+					closestModel = model;
+					maxDistance = result.z;
+				}
+			}
+		}
 	}
-	else if (state == 1) {
-		ML_LOG_TAG(Info, "QUALITY", "%d", (impl->currentModelIndex + 1) * 10);
 
-		state++;
+	if (!closestModel) {
+		return;
 	}
-	else if (state == 2) {
-		ML_LOG_TAG(Info, "QUALITY", "RESET");
 
-		state = 0;
-	}
-	*/
+	ML_LOG_TAG(Info, "QUALITY", "%f", closestModel->GetQuality());
 }

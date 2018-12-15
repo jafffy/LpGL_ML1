@@ -242,6 +242,7 @@
     <ClInclude Include="inc\QDSEvaluationScene.h" />
     <ClInclude Include="inc\Quad.h" />
     <ClInclude Include="inc\ShaderUtils.h" />
+    <ClInclude Include="inc\Simplify.h" />
     <ClInclude Include="inc\tinyobjloader.h" />
     <ClInclude Include="inc\UDPScene.h" />
     <ClInclude Include="inc\VaryingFocusAngleScene.h" />
@@ -273,7 +274,7 @@
   </ItemGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties MLProjectMabuSyncTime="131891682660248227 (2018-12-13 오전 9:51:06 UTC)" />
+      <UserProperties MLProjectMabuSyncTime="131891784877920574 (2018-12-13 오후 12:41:27 UTC)" />
     </VisualStudio>
   </ProjectExtensions>
 </Project>

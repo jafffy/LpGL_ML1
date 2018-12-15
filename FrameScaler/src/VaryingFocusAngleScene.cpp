@@ -8,13 +8,15 @@
 
 #include <vector>
 #include <cstdlib>
+#include <random>
+#include <algorithm>
 
 #include <GLES3/gl3.h>
 #include <GLES3/gl3ext.h>
 
-#define FOCUS_MODEL_FILEPATH TARGET_MODEL_BASEPATH "69K.obj"
-#define FOCUS_MODEL_FILEPATH_REDUCED_1 TARGET_MODEL_BASEPATH "69K_1.obj"
-#define FOCUS_MODEL_FILEPATH_REDUCED_2 TARGET_MODEL_BASEPATH "69K_2.obj"
+#define FOCUS_MODEL_FILEPATH TARGET_MODEL_BASEPATH "sphere.obj"
+#define FOCUS_MODEL_FILEPATH_REDUCED_1 TARGET_MODEL_BASEPATH "sphere_1.obj"
+#define FOCUS_MODEL_FILEPATH_REDUCED_2 TARGET_MODEL_BASEPATH "sphere_2.obj"
 
 class VaryingFocusAngleSceneImpl
 {
@@ -46,36 +48,59 @@ bool VaryingFocusAngleScene::InitContents()
   glDepthFunc(GL_LESS);
   glEnable(GL_CULL_FACE);
 
-  int n = 40;
+  int n = 41;
+  int middle = n / 2;
 
-  for (int j = 0; j < 1; ++j) {
-	  for (int i = 0; i < n; ++i) {
-		  float t = (float)i / n;
-		  float c = 5.0f * cosf(t * M_PI * 40.0f / 180.0f);
-		  float s = 5.0f * sinf(t * M_PI * 40.0f / 180.0f);
+  std::random_device rd;
+  std::mt19937 g(rd());
 
-		  auto model = new ModelObj();
+  int angleIndex = 3;
+
+  int angleSequence[] = { 12, 10, 8, 6, 4 };
+  // std::shuffle(angleSequence, angleSequence + 5, g);
+
+  ML_LOG(Info, "%d\n", angleSequence[angleIndex]);
+
+  for (int i = 0; i < n; ++i) {
+	  float t = (float)i / n;
+	  float c = 5.0f * cosf(t * M_PI * 40.0f / 180.0f);
+	  float s = 5.0f * sinf(t * M_PI * 40.0f / 180.0f);
+
+	  auto model = new ModelObj();
+
+	  int distance_from_mid = abs(middle - i);
+
+	  if (distance_from_mid <= angleSequence[angleIndex] / 2) {
 		  model->Load(FOCUS_MODEL_FILEPATH,
 			  FOCUS_MODEL_FILEPATH_REDUCED_1,
 			  FOCUS_MODEL_FILEPATH_REDUCED_2,
 			  TARGET_MODEL_BASEPATH);
-
-		  if (i == n / 2)
-			  model->SetShaders(VS_FILE_PATH, GREEN_FS_FILE_PATH);
-		  else
-			  model->SetShaders(VS_FILE_PATH, FS_FILE_PATH);
-
-		  model->SetPosition(glm::vec3(c, 0, s));
-		  model->SetRotation(glm::vec3(0, 0, -t * 2 * M_PI + M_PI * 0.5f + M_PI));
-		  model->SetScale(glm::vec3(0.05f));
-		  model->SetVisible(true);
-		  model->SetInitialVelocity(glm::vec3((float)random() / RAND_MAX - 0.5f, 0, 0));
-
-		  if (!model->Create())
-			  return false;
-
-		  impl->models.push_back(model);
 	  }
+	  else if (distance_from_mid <= 15) {
+		  model->Load(FOCUS_MODEL_FILEPATH_REDUCED_1,
+			  FOCUS_MODEL_FILEPATH_REDUCED_1,
+			  FOCUS_MODEL_FILEPATH_REDUCED_2,
+			  TARGET_MODEL_BASEPATH);
+	  }
+	  else {
+		  model->Load(FOCUS_MODEL_FILEPATH_REDUCED_2,
+			  FOCUS_MODEL_FILEPATH_REDUCED_2,
+			  FOCUS_MODEL_FILEPATH_REDUCED_2,
+			  TARGET_MODEL_BASEPATH);
+	  }
+
+	  model->SetShaders(VS_FILE_PATH, FS_FILE_PATH);
+
+	  model->SetPosition(glm::vec3(c, 0.0f, s));
+	  model->SetRotation(glm::vec3(0, 0, -t * 2 * M_PI + M_PI * 0.5f + M_PI));
+	  model->SetScale(glm::vec3(0.05f, 0.7f, 0.05f));
+	  model->SetVisible(true);
+	  model->SetInitialVelocity(glm::vec3((float)random() / RAND_MAX - 0.5f, 0, 0));
+
+	  if (!model->Create())
+		  return false;
+
+	  impl->models.push_back(model);
   }
 
 
@@ -118,10 +143,12 @@ void VaryingFocusAngleScene::OnRender(int cameraIndex, float dt)
 		model->Update(dt);
 	}
 
+	/*
 	if (cameraIndex == 0) {
 		int recommended_fps = LpGLEngine::instance().Update(eels_with_full_lpgl, impl->models, impl->targetFrameRate, dt);
 		impl->targetFrameRate = recommended_fps;
 	}
+	*/
 
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

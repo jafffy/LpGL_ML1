@@ -28,6 +28,8 @@
 
 #include "ShaderUtils.h"
 
+#include "Simplify.h"
+
 class ModelObjImpl
 {
 public:
@@ -82,6 +84,8 @@ public:
 	int abnormalIndex = -1;
 
 	glm::vec2 lastProjectedPosition = glm::vec2(0, 0);
+
+	float quality = 0.0f;
 };
 
 ModelObj::ModelObj()
@@ -99,6 +103,8 @@ ModelObj::~ModelObj()
 
 static void model_load(std::string path, std::string base_path, std::function<void (const glm::vec3&, const glm::vec3&)> callback)
 {
+	ML_LOG(Info, "Begin model load: %s", path.c_str());
+
 	tinyobj::attrib_t attrib;
 	std::vector<tinyobj::shape_t> shapes;
 	std::vector<tinyobj::material_t> materials;
@@ -110,6 +116,17 @@ static void model_load(std::string path, std::string base_path, std::function<vo
 	if (!ret) {
 		ML_LOG(Error, "%s/%s is not loaded", base_path.c_str(), path.c_str());
 	}
+
+	/*
+	Simplify::load_obj(path.c_str());
+
+	int target_count = Simplify::triangles.size() >> 5;
+	double agressiveness = 7.0;
+
+	ML_LOG(Info, "Start");
+	Simplify::simplify_mesh(target_count, agressiveness, false);
+	ML_LOG(Info, "End");
+	*/
 
 	for (auto shape : shapes) {
 		size_t index_offset = 0;
@@ -134,6 +151,8 @@ static void model_load(std::string path, std::string base_path, std::function<vo
 			index_offset += fnum;
 		}
 	}
+
+	ML_LOG(Info, "End model load: %s", path.c_str());
 }
 
 struct MeshSet
@@ -470,4 +489,14 @@ int ModelObj::GetAbnormal() const
 bool ModelObj::IsAbnormal()
 {
 	return impl->isAbnormal;
+}
+
+void ModelObj::SetQuality(float quality)
+{
+	impl->quality = quality;
+}
+
+float ModelObj::GetQuality() const
+{
+	return impl->quality;
 }
