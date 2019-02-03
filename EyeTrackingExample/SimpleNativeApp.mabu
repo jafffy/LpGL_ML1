@@ -1,0 +1,7 @@
+KIND = program
+SRCS = \
+	main.cpp \
+	util.cc
+
+USES = ml_sdk \
+		stdc++
