@@ -247,6 +247,9 @@ int MLNativeWindow::Start()
   auto start = std::chrono::steady_clock::now();
   float elapsed_time = 0.0f;
 
+  int FPS = 0;
+  float FPStimer = 0.0f;
+
   while (application_context.dummy_value) {
 	  OnRender(elapsed_time / 1000.0f);
 
@@ -261,6 +264,16 @@ int MLNativeWindow::Start()
 	  if (blanked_time_ms > 0)
 	  {
 		  usleep(useconds_t(blanked_time_ms * 1000));
+	  }
+
+	  FPStimer += 1 / (elapsed_time / 1000.0f);
+	  FPS++;
+
+	  if (FPStimer > 1.0f) {
+		  ML_LOG_TAG(Info, "FRAMERATE", "%d", FPS);
+
+		  FPStimer = 0.0f;
+		  FPS = 0;
 	  }
   }
 

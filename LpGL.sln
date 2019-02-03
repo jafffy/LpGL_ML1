@@ -13,6 +13,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "echoclient", "..\..\echocli
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glm_test", "glm_test\glm_test.vcxproj", "{20BE048B-4CF4-4A57-9FB6-60F0066FDF82}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EyeTrackingExample", "EyeTrackingExample\EyeTrackingExample.vcxproj", "{37D21915-2EC3-4ED9-8B91-60DC7D5E8026}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ML = Debug|ML
@@ -73,6 +75,16 @@ Global
 		{20BE048B-4CF4-4A57-9FB6-60F0066FDF82}.Release|x64.Build.0 = Release|x64
 		{20BE048B-4CF4-4A57-9FB6-60F0066FDF82}.Release|x86.ActiveCfg = Release|Win32
 		{20BE048B-4CF4-4A57-9FB6-60F0066FDF82}.Release|x86.Build.0 = Release|Win32
+		{37D21915-2EC3-4ED9-8B91-60DC7D5E8026}.Debug|ML.ActiveCfg = Debug|ML
+		{37D21915-2EC3-4ED9-8B91-60DC7D5E8026}.Debug|ML.Build.0 = Debug|ML
+		{37D21915-2EC3-4ED9-8B91-60DC7D5E8026}.Debug|x64.ActiveCfg = Debug|x64
+		{37D21915-2EC3-4ED9-8B91-60DC7D5E8026}.Debug|x64.Build.0 = Debug|x64
+		{37D21915-2EC3-4ED9-8B91-60DC7D5E8026}.Debug|x86.ActiveCfg = Debug|x64
+		{37D21915-2EC3-4ED9-8B91-60DC7D5E8026}.Release|ML.ActiveCfg = Release|ML
+		{37D21915-2EC3-4ED9-8B91-60DC7D5E8026}.Release|ML.Build.0 = Release|ML
+		{37D21915-2EC3-4ED9-8B91-60DC7D5E8026}.Release|x64.ActiveCfg = Release|x64
+		{37D21915-2EC3-4ED9-8B91-60DC7D5E8026}.Release|x64.Build.0 = Release|x64
+		{37D21915-2EC3-4ED9-8B91-60DC7D5E8026}.Release|x86.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

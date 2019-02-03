@@ -80,10 +80,11 @@ bool ObjectQualityScene::InitContents()
 	std::random_device rd;
 	std::mt19937 g(rd());
 
-	float quality_scores[] = { 9, 9, 9, 9, 0, 9, 9, 9, 9, 9, 9 };
+	// float quality_scores[] = { 9, 9, 9, 9, 9, 9, 9, 9, 0, 9, 9, 9, 9, 9, 9, 9, 9  };
+	float quality_scores[] = { 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0, };
 	// std::shuffle(quality_scores, quality_scores + 11, g);
 
-	int n = 11;
+	int n = 17;
 
 	for (int i = 0; i < n; ++i) {
 		auto model = new ModelObj();
@@ -93,13 +94,13 @@ bool ObjectQualityScene::InitContents()
 			TARGET_MODEL_BASEPATH);
 
 		float t = (float)i / n;
-		float c = 5.0f * cosf(t * 2 * M_PI);
-		float s = 5.0f * sinf(t * 2 * M_PI);
+		float c = 5.0f * cosf(t * 2 * M_PI + M_PI);
+		float s = 5.0f * sinf(t * 2 * M_PI + M_PI);
 
 		model->SetShaders(VS_FILE_PATH, FS_FILE_PATH);
 
 		model->SetPosition(glm::vec3(c, 0, s));
-		model->SetRotation(glm::vec3(0, 0, -t * 2 * M_PI - M_PI_2));
+		model->SetRotation(glm::vec3(0, 0, -t * 2 * M_PI - M_PI_2 + M_PI));
 		model->SetScale(glm::vec3(0.75f));
 		model->SetVisible(true);
 		model->SetIsPhysicalObject(false);

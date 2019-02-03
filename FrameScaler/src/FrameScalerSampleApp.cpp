@@ -202,8 +202,8 @@ public:
 
 		for (int i = 0; i < n; ++i) {
 			float t = (float)i / n;
-			float c = 5.0f * cosf(t * 2 * M_PI * 0.1f);
-			float s = 5.0f * sinf(t * 2 * M_PI * 0.1f);
+			float c = 5.0f * cosf(t * 2 * M_PI * 0.01f);
+			float s = 5.0f * sinf(t * 2 * M_PI * 0.01f);
 
 			ModelObj* model = models[i];
 
@@ -454,7 +454,6 @@ void FrameScalerSampleApp::OnRender(int cameraIndex, float dt)
 
 	Update(dt);
 
-	/*
 #ifndef EQUAL_ENERGY
 	if (cameraIndex == 0) {
 		auto start = std::chrono::steady_clock::now();
@@ -467,7 +466,6 @@ void FrameScalerSampleApp::OnRender(int cameraIndex, float dt)
 		// ML_LOG(Info, "LpGLEnergy | %lf", elapsed_time);
 	}
 #endif 
-*/
 
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

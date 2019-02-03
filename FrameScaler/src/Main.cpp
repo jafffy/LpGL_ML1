@@ -18,9 +18,9 @@
 #include "UDPScene.h"
 
 int main() {
-	// FrameScalerSampleApp app;
+	FrameScalerSampleApp app;
 	// VaryingFocusAngleScene app;
-	ObjectQualityScene app;
+	// ObjectQualityScene app;
 	// ImageBasedDynamicsScene app;
 	// UDPScene app;
 	MLNativeWindow nativeWindow(&app);

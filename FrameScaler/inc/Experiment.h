@@ -17,7 +17,7 @@
 #define LOD_LV2 float(M_PI / 180 * 30.0f)
 #define LOD_LV1 float(M_PI / 180 * 10.0f)
 
-#define MAXIMUM_ENERGY
+// #define MAXIMUM_ENERGY
 
 // #define TRANSIT_LPGL_STATE
 
@@ -25,9 +25,9 @@
 
 #define INITIAL_X 1.75
 
-// #define LPGL_MESHSIMP 1
+#define LPGL_
 
-// #define DYNAMIC_SCENE
+#define DYNAMIC_SCENE
 
 // #define FIDELITY_SCENE
 
@@ -37,7 +37,7 @@
 
 #define TARGET_FRAME_RATE 60
 
-#define NUM_OBJECTS 64
+#define NUM_OBJECTS 1
 
 #define TARGET_ASSET_BASEPATH "assets/"
 #define TARGET_MODEL_BASEPATH TARGET_ASSET_BASEPATH "models/"
