@@ -393,3 +393,5 @@ ASALocalRun/
 
 # Visual Studio Code
 .vscode/
+
+*.swp
