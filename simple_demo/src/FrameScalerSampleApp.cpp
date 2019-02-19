@@ -40,12 +40,14 @@
 class FrameScalerSampleAppImpl
 {
 public:
+  bool is_LpGL_on = false;
+
 	std::vector<ModelObj*> models;
 	std::vector<ModelObj*> abnormalModels;
 	std::vector<ModelObj*> normalModels;
 	int targetFrameRate = 60;
 
-	int randomLpgLStateIndex = 0;
+	int randomLpGLStateIndex = 0;
 /*
   eels_without_lpgl,
   eels_with_ds,
@@ -431,9 +433,6 @@ void FrameScalerSampleApp::Update(float dt)
 
 			if (p.y < -1) {
 				model->Reset(0.5f, 1.0f);
-#ifdef DYNAMIC_SCENE
-				impl->numTargets++;
-#endif
 			}
 
 			model->Update(dt);
@@ -450,41 +449,29 @@ void FrameScalerSampleApp::OnRender(int cameraIndex, float dt)
 		isFirstRender = false;
 	}
 
-	auto currentState = impl->lpglStateSequence[impl->currentLpGLState];
-
 	Update(dt);
 
-#ifndef EQUAL_ENERGY
-	if (cameraIndex == 0) {
-		auto start = std::chrono::steady_clock::now();
+  if (cameraIndex == 0 // LpGL for one eye.
+      && impl->is_LpGL_on) {
+    ML_LOG(Info, "Run LpGL");
 
-		int recommended_fps = LpGLEngine::instance().Update(impl->currentLpGLState, impl->models, GetTargetFrameRate(), dt);
-		SetTargetFrameRate(recommended_fps);
+    auto& engine = LpGLEngine::instance();
+    auto state = eels_with_full_lpgl;
 
-		float elapsed_time = std::chrono::duration_cast<std::chrono::microseconds>(
-			std::chrono::steady_clock::now() - start).count();
-		// ML_LOG(Info, "LpGLEnergy | %lf", elapsed_time);
-	}
-#endif 
+		impl->targetFrameRate = engine.Update(state, impl->models,
+                                          impl->targetFrameRate, dt);
+  }
 
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	for (auto* model : impl->models)
 		model->Render();
-
-	impl->quad.Draw();
 }
 
 int FrameScalerSampleApp::GetTargetFrameRate()
 {
-	auto currentState = impl->lpglStateSequence[impl->currentLpGLState];
-
-	if (currentState == eels_with_full_lpgl
-		|| currentState == eels_with_ds)
 		return impl->targetFrameRate;
-	else
-		return 60;
 }
 
 void FrameScalerSampleApp::SetTargetFrameRate(int targetFrameRate)
@@ -494,97 +481,6 @@ void FrameScalerSampleApp::SetTargetFrameRate(int targetFrameRate)
 
 bool FrameScalerSampleApp::InitContents()
 {
-	srandom(time(0));
-
-#ifdef MAXIMUM_ENERGY
-	for (int i = 0; i < BUFSIZE; ++i) {
-		buf[i] = random() % 255 + 1;
-	}
-
-	impl->t = std::thread([&]() {
-		struct sockaddr_in server_address;
-		memset(&server_address, 0, sizeof(server_address));
-		server_address.sin_family = AF_INET;
-
-		inet_pton(AF_INET, server_name, &server_address.sin_addr);
-
-		server_address.sin_port = htons(server_port);
-
-		int sock;
-		if ((sock = socket(PF_INET, SOCK_DGRAM, 0)) < 0) {
-			printf("could not create socket\n");
-			return;
-		}
-
-		double timer = 0.0f;
-
-		struct timeval t1, t2;
-
-		gettimeofday(&t1, nullptr);
-
-		while (timer < 120.0f) {
-			struct timeval start_to_send;
-			gettimeofday(&start_to_send, nullptr);
-
-			// for (int i = 0; i < 1024; ++i) {
-			int ret = sendto(sock, buf, BUFSIZE, 0,
-				(struct sockaddr*)&server_address, sizeof(server_address));
-
-			if (ret == -1) {
-				char* err = strerror(errno);
-				ML_LOG(Error, "error: %s", err);
-			}
-			// }
-
-			struct timeval end_to_send;
-			gettimeofday(&end_to_send, nullptr);
-
-			{
-				useconds_t elapsedTime = (end_to_send.tv_sec - start_to_send.tv_sec) * 1000000;
-				elapsedTime += end_to_send.tv_usec - start_to_send.tv_usec;
-
-				if (1000000 - elapsedTime > 0) {
-					// usleep(1000000 - elapsedTime);
-				}
-			}
-
-			gettimeofday(&t2, nullptr);
-
-			double elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
-			elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
-
-			timer = elapsedTime / 1000.0f;
-		}
-
-		close(sock);
-	});
-#endif
-
-	impl->lpglStateSequence[0] = eels_without_lpgl;
-	impl->lpglStateSequence[1] = eels_with_ds;
-	impl->lpglStateSequence[2] = eels_with_meshsimp;
-	impl->lpglStateSequence[3] = eels_with_culling;
-	impl->lpglStateSequence[4] = eels_with_full_lpgl;
-
-	int currentLpGLstateSeq = 0;
-
-	while (currentLpGLstateSeq < eels_count) {
-		auto state = (eExpermentLpGLState)(random() % eels_count);
-
-		for (int j = 0; j < currentLpGLstateSeq; ++j) {
-			if (impl->lpglStateRandomSequence[j] == state) {
-				continue;
-			}
-		}
-
-		impl->lpglStateRandomSequence[currentLpGLstateSeq++] = state;
-	}
-
-#ifdef TRANSIT_LPGL_STATE
-	impl->currentLpGLState = impl->lpglStateRandomSequence[impl->randomLpgLStateIndex++];
-	ML_LOG_TAG(Info, "STATE", "%d\n", impl->currentLpGLState);
-#endif
-
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 	glEnable(GL_CULL_FACE);
@@ -612,88 +508,15 @@ void FrameScalerSampleApp::DestroyContents()
 	impl->models.clear();
 }
 
-bool fidelityStart = true;
-
 void FrameScalerSampleApp::OnPressed()
 {
-	ModelObj* closestModel = nullptr;
-	float maxDistance = -FLT_MAX;
+  bool old_, new_;
 
-#ifdef FIDELITY_SCENE
-	if (fidelityStart) {
-		ML_LOG_TAG(Info, "FIDELITY", "Start");
-		fidelityStart = false;
-		return;
-	}
-#endif
+  old_ = impl->is_LpGL_on;
+  new_ = !old_;
 
-	for (auto* model : impl->models) {
-		std::vector<glm::vec3> boundingVertices = model->GetBoundingBox();
-		auto boundingBox2D = new BoundingBox2D();
+  impl->is_LpGL_on = new_;
 
-		for (const auto& v : boundingVertices) {
-			glm::vec4 result = Camera::Instance().P_for_LpGL * (Camera::Instance().V_for_LpGL * glm::vec4(v, 1.0f));
-
-			boundingBox2D->AddPoint(result.x, result.y);
-
-			if (!(boundingBox2D->Min.y > 0.01 || boundingBox2D->Max.y < -0.01
-				|| boundingBox2D->Min.x > 0.01 || boundingBox2D->Max.x < -0.01)) {
-
-				if (maxDistance < result.z) {
-					closestModel = model;
-					maxDistance = result.z;
-				}
-			}
-		}
-	}
-
-	if (!closestModel) {
-#ifdef DYNAMIC_SCENE
-		impl->numMissed++;
-		ML_LOG_TAG(Info, HIT_ACCURACY, "hit: %d, miss: %d, acc: %f", impl->numHit, impl->numMissed, (float)impl->numHit / (impl->numHit + impl->numMissed));
-#endif // DYNAMIC_SCENE
-		return;
-	}
-
-#if defined(FIDELITY_SCENE)
-
-
-	static int last_index = -1;
-
-	int abnormal_index =
-		closestModel == impl->abnormalModels[impl->abnormal_random_index] ?
-		impl->abnormal_random_index : -1;
-	abnormal_index =
-		closestModel == impl->abnormalModels[impl->abnormal_random_index + 3] ?
-		impl->abnormal_random_index + 3 : abnormal_index;
-
-	if (abnormal_index != last_index) {
-		if (last_index == -1) {
-			last_index = abnormal_index;
-			ML_LOG_TAG(Info, FIDELITY_LATENCY, "One more!");
-			return;
-		}
-
-		ML_LOG_TAG(Info, FIDELITY_LATENCY, "Find!");
-
-		last_index = -1;
-		impl->distributeObjects();
-
-#ifdef TRANSIT_LPGL_STATE
-		impl->currentLpGLState = impl->lpglStateRandomSequence[impl->randomLpgLStateIndex++];
-		ML_LOG_TAG(Info, "STATE", "%d\n", impl->currentLpGLState);
-#endif
-
-		ML_LOG_TAG(Info, FIDELITY_LATENCY, "Start to finding");
-		fidelityStart = true;
-	}
-#elif defined(DYNAMIC_SCENE)
-	impl->numHit++;
-	ML_LOG_TAG(Info, HIT_ACCURACY, "num total: %d, hit: %d, miss: %d, acc: %f", impl->numTargets, impl->numHit, impl->numMissed, (float)impl->numHit / impl->numTargets);
-#endif
-
-#ifdef DYNAMIC_SCENE
-	closestModel->Reset(0.5f, 1.0f);
-	impl->numTargets++;
-#endif
+  ML_LOG(Info, "Toggle LpGL: %d -> %d", old_, new_);
 }
+
