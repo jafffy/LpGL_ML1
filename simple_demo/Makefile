@@ -6,6 +6,8 @@ SECONDS=15
 QUALITY=720p
 VIDEO_FILE_NAME=simple-demo-$(SECONDS)s.mp4
 
+NUM_RECENT_LOGS=10
+
 all:
 	mabu $(PACKAGE_FILE_NAME).package -t lumin -s $(MLCERT)
 
@@ -20,3 +22,6 @@ terminate:
 
 video:
 	mldb capture video -r -q $(QUALITY) -t $(SECONDS) $(VIDEO_FILE_NAME) # NOTE: -f doesn't work, but idk why it does.
+
+log:
+	mldb log -T $(NUM_RECENT_LOGS)
