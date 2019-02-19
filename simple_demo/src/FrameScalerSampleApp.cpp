@@ -27,20 +27,15 @@
 
 #include "Quad.h"
 
-#ifdef MAXIMUM_ENERGY
-
-#include <sys/time.h>
-#include <arpa/inet.h>
-#include <sys/socket.h>
-#include <unistd.h>
-#include <thread>
-
-#endif
+struct HotMobile2019DemoEnv {
+  bool is_LpGL_on = false;
+  double toggling_timer = 0.0;
+};
 
 class FrameScalerSampleAppImpl
 {
 public:
-  bool is_LpGL_on = false;
+  HotMobile2019DemoEnv demoEnv;
 
 	std::vector<ModelObj*> models;
 	std::vector<ModelObj*> abnormalModels;
@@ -438,84 +433,103 @@ void FrameScalerSampleApp::Update(float dt)
 			model->Update(dt);
 		}
 	}
+
+  // Demo timer update for toggling
+  {
+    double& toggling_timer = impl->demoEnv.toggling_timer;
+    toggling_timer += dt;
+
+    bool& is_LpGL_on = impl->demoEnv.is_LpGL_on;
+
+    if (is_LpGL_on) {
+      if (toggling_timer > 20) {
+        is_LpGL_on = false;
+      }
+    }
+    else {
+      if (toggling_timer > 10) {
+        is_LpGL_on = true;
+      }
+    }
+  }
 }
 
 void FrameScalerSampleApp::OnRender(int cameraIndex, float dt)
 {
-	static bool isFirstRender = true;
+  static bool isFirstRender = true;
 
-	if (isFirstRender) {
-		ML_LOG_TAG(Info, LATENCY, "First Render");
-		isFirstRender = false;
-	}
+  if (isFirstRender) {
+    ML_LOG_TAG(Info, LATENCY, "First Render");
+    isFirstRender = false;
+  }
 
-	Update(dt);
+  Update(dt);
 
   if (cameraIndex == 0 // LpGL for one eye.
-      && impl->is_LpGL_on) {
+      && impl->demoEnv.is_LpGL_on) {
     ML_LOG(Info, "Run LpGL");
 
     auto& engine = LpGLEngine::instance();
     auto state = eels_with_full_lpgl;
 
-		impl->targetFrameRate = engine.Update(state, impl->models,
-                                          impl->targetFrameRate, dt);
+    impl->targetFrameRate = engine.Update(state, impl->models,
+        impl->targetFrameRate, dt);
   }
 
-	glClearColor(0.0, 0.0, 0.0, 0.0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glClearColor(0.0, 0.0, 0.0, 0.0);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	for (auto* model : impl->models)
-		model->Render();
+  for (auto* model : impl->models)
+    model->Render();
 }
 
 int FrameScalerSampleApp::GetTargetFrameRate()
 {
-		return impl->targetFrameRate;
+  return impl->targetFrameRate;
 }
 
 void FrameScalerSampleApp::SetTargetFrameRate(int targetFrameRate)
 {
-	impl->targetFrameRate = targetFrameRate;
+  impl->targetFrameRate = targetFrameRate;
 }
 
 bool FrameScalerSampleApp::InitContents()
 {
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS);
-	glEnable(GL_CULL_FACE);
+  glEnable(GL_DEPTH_TEST);
+  glDepthFunc(GL_LESS);
+  glEnable(GL_CULL_FACE);
 
-	impl->generateModels();
+  impl->generateModels();
 
-	impl->quad.InitContents();
+  impl->quad.InitContents();
 
-	return true;
+  return true;
 }
 
 void FrameScalerSampleApp::DestroyContents()
 {
-	impl->quad.DestroyContents();
+  impl->quad.DestroyContents();
 
-	for (auto* model : impl->models) {
-		model->Destroy();
+  for (auto* model : impl->models) {
+    model->Destroy();
 
-		if (model) {
-			delete model;
-			model = nullptr;
-		}
-	}
+    if (model) {
+      delete model;
+      model = nullptr;
+    }
+  }
 
-	impl->models.clear();
+  impl->models.clear();
 }
 
 void FrameScalerSampleApp::OnPressed()
 {
   bool old_, new_;
 
-  old_ = impl->is_LpGL_on;
+  old_ = impl->demoEnv.is_LpGL_on;
   new_ = !old_;
 
-  impl->is_LpGL_on = new_;
+  impl->demoEnv.is_LpGL_on = new_;
 
   ML_LOG(Info, "Toggle LpGL: %d -> %d", old_, new_);
 }
