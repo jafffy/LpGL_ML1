@@ -388,3 +388,4 @@ ASALocalRun/
 
 
 *.bak
+.DS_Store
