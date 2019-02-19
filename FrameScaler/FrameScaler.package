@@ -1,4 +1,3 @@
-MLCERT = D:\development\cert\lpgl.cert
 REFS = FrameScaler
 USES = \
 	models \
