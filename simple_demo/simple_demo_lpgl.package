@@ -1,0 +1,6 @@
+REFS = simple_demo_lpgl 
+USES = \
+	models \
+	shaders \
+	texture
+

@@ -1,0 +1,20 @@
+<manifest
+	xmlns:ml="magicleap"
+	ml:package="com.jafffy.simple_demo_lpgl"
+	ml:version_code="1"
+	ml:version_name="1.0">
+	<application
+		ml:visible_name="simple_demo_lpgl"
+		ml:sdk_version="1.0">
+    <uses-privilege ml:name="LowLatencyLightwear" />
+    <uses-privilege ml:name="ControllerPose" />
+    <uses-privilege ml:name="Internet" />
+    <uses-privilege ml:name="LocalAreaNetwork" />
+		<component
+			ml:name=".fullscreen"
+			ml:visible_name="simple_demo_lpgl"
+			ml:binary_name="bin/simple_demo_lpgl"
+			ml:type="Fullscreen">
+		</component>
+	</application>
+</manifest>
