@@ -1,0 +1,3 @@
+DATAS = \
+	textures/white.png : assets/textures/white.png \
+	textures/red.png : assets/textures/red.png

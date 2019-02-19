@@ -388,3 +388,10 @@ ASALocalRun/
 
 
 *.bak
+
+.DS_Store
+
+# Visual Studio Code
+.vscode/
+
+*.swp
