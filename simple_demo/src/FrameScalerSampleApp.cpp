@@ -25,18 +25,17 @@
 #include <ml_logging.h>
 #endif
 
-#include "Quad.h"
-
 struct HotMobile2019DemoEnv {
-  bool is_LpGL_on = false;
-  double toggling_timer = 0.0;
+  static bool is_LpGL_on;
+  static double toggling_timer;
 };
+
+bool HotMobile2019DemoEnv::is_LpGL_on = false;
+double HotMobile2019DemoEnv::toggling_timer = 0.0f;
 
 class FrameScalerSampleAppImpl
 {
 public:
-  HotMobile2019DemoEnv demoEnv;
-
 	std::vector<ModelObj*> models;
 	int targetFrameRate = 60;
 
@@ -55,7 +54,7 @@ public:
 		}
 	}
 
-	bool generateModels()
+	bool init_models()
 	{
 		int n = NUM_OBJECTS;
 
@@ -125,10 +124,10 @@ void FrameScalerSampleApp::Update(float dt)
 
   // Demo timer update for toggling
   {
-    double& toggling_timer = impl->demoEnv.toggling_timer;
+    double& toggling_timer = HotMobile2019DemoEnv::toggling_timer;
     toggling_timer += dt;
 
-    bool& is_LpGL_on = impl->demoEnv.is_LpGL_on;
+    bool& is_LpGL_on = HotMobile2019DemoEnv::is_LpGL_on;
 
     if (is_LpGL_on) {
       if (toggling_timer > 20) {
@@ -155,7 +154,7 @@ void FrameScalerSampleApp::OnRender(int cameraIndex, float dt)
   Update(dt);
 
   if (cameraIndex == 0 // LpGL for one eye.
-      && impl->demoEnv.is_LpGL_on) {
+      && HotMobile2019DemoEnv::is_LpGL_on) {
     ML_LOG(Info, "Run LpGL");
 
     auto& engine = LpGLEngine::instance();
@@ -188,7 +187,7 @@ bool FrameScalerSampleApp::InitContents()
   glDepthFunc(GL_LESS);
   glEnable(GL_CULL_FACE);
 
-  impl->generateModels();
+  impl->init_models();
 
   return true;
 }
@@ -211,10 +210,10 @@ void FrameScalerSampleApp::OnPressed()
 {
   bool old_, new_;
 
-  old_ = impl->demoEnv.is_LpGL_on;
+  old_ = HotMobile2019DemoEnv::is_LpGL_on;
   new_ = !old_;
 
-  impl->demoEnv.is_LpGL_on = new_;
+  HotMobile2019DemoEnv::is_LpGL_on = new_;
 
   ML_LOG(Info, "Toggle LpGL: %d -> %d", old_, new_);
 }
