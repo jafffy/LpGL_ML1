@@ -28,10 +28,14 @@
 struct HotMobile2019DemoEnv {
   static bool is_LpGL_on;
   static double toggling_timer;
+  static float sphere_scale;
+  static int num_spheres;
 };
 
 bool HotMobile2019DemoEnv::is_LpGL_on = false;
 double HotMobile2019DemoEnv::toggling_timer = 0.0f;
+float HotMobile2019DemoEnv::sphere_scale = 0.5f;
+int HotMobile2019DemoEnv::num_spheres = 5;
 
 class FrameScalerSampleAppImpl
 {
@@ -56,7 +60,7 @@ public:
 
 	bool init_models()
 	{
-		int n = NUM_OBJECTS;
+		int n = HotMobile2019DemoEnv::num_spheres;
 
 		for (int i = 0; i < n; ++i) {
 			auto model = new ModelObj();
@@ -67,7 +71,7 @@ public:
 
 			model->SetShaders(VS_FILE_PATH, FS_FILE_PATH);
 
-			model->SetScale(glm::vec3(1.0f));
+			model->SetScale(glm::vec3(HotMobile2019DemoEnv::sphere_scale));
 			model->SetVisible(true);
 			if (!model->Create())
 				return false;
