@@ -8,6 +8,9 @@ VIDEO_FILE_NAME=simple-demo-$(SECONDS)s.mp4
 
 NUM_RECENT_LOGS=10
 
+ML1_IP_ADDRESS=192.168.0.13
+ML1_PORT=1131
+
 all:
 	mabu $(PACKAGE_FILE_NAME).package -t lumin -s $(MLCERT)
 
@@ -25,3 +28,10 @@ video:
 
 log:
 	mldb log -T $(NUM_RECENT_LOGS)
+
+wifi:
+	mldb wifi status
+	echo "Plug out your ML1 and ``make connect``."
+
+connect:  # Could I make a dependency between wifi?
+	mldb connect $(ML1_IP_ADDRESS):$(ML1_PORT)
