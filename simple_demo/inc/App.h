@@ -4,7 +4,7 @@
 class App
 {
 public:
-	virtual ~App() {}
+	virtual ~App() = default;
 
 	virtual bool InitContents() = 0;
 	virtual void DestroyContents() = 0;
@@ -14,6 +14,8 @@ public:
 	virtual void OnRender(int cameraIndex, float dt) = 0;
 
 	virtual void OnPressed() = 0;
+
+	virtual void OnReleased() = 0;
 };
 
 #endif // APP_H_

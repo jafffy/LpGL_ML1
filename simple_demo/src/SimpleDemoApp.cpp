@@ -19,18 +19,16 @@
 
 #endif
 
-#include <ml_logging.h>
-
 #include "Quad.h"
 
 struct HotMobile2019DemoEnv {
-  static float sphere_scale;
-  static int num_spheres;
+  static float bunny_scale;
+  static int num_bunnies;
   static int num_rows;
 };
 
-float HotMobile2019DemoEnv::sphere_scale = 0.5f;
-int HotMobile2019DemoEnv::num_spheres = 15;
+float HotMobile2019DemoEnv::bunny_scale = 0.5f;
+int HotMobile2019DemoEnv::num_bunnies = 15;
 int HotMobile2019DemoEnv::num_rows = 5;
 
 class SimpleDemoAppImpl
@@ -44,7 +42,7 @@ public:
   bool init_models() {
     float const k_distance_front_of_user = 5;
 
-    int n = HotMobile2019DemoEnv::num_spheres;
+    int n = HotMobile2019DemoEnv::num_bunnies;
     int n_row = HotMobile2019DemoEnv::num_rows;
 
     for (int i = 0; i < n; ++i) {
@@ -57,7 +55,7 @@ public:
 
         model->SetShaders(VS_FILE_PATH, FS_FILE_PATH);
 
-        model->SetScale(glm::vec3(HotMobile2019DemoEnv::sphere_scale));
+        model->SetScale(glm::vec3(HotMobile2019DemoEnv::bunny_scale));
         model->SetVisible(true);
         if (!model->Create())
           return false;
@@ -95,12 +93,6 @@ void SimpleDemoApp::Update(float dt)
 }
 
 void SimpleDemoApp::OnRender(int cameraIndex, float dt) {
-  static bool isFirstRender = true;
-
-  if (isFirstRender) {
-    isFirstRender = false;
-  }
-
   Update(dt);
 
   if (cameraIndex == 0) {
@@ -152,13 +144,9 @@ void SimpleDemoApp::DestroyContents() {
 
 void SimpleDemoApp::OnPressed()
 {
-  bool old_, new_;
-
-  old_ = LpGLEngine::instance().IsOn;
-  new_ = !old_;
-
-  LpGLEngine::instance().IsOn = new_;
-
-  ML_LOG(Info, "Toggle LpGL: %d -> %d", old_, new_);
+  LpGLEngine::instance().IsOn = true;
 }
 
+void SimpleDemoApp::OnReleased() {
+  LpGLEngine::instance().IsOn = false;
+}

@@ -24,6 +24,8 @@ public:
 
   void OnPressed() override;
 
+	void OnReleased() override;
+
 private:
   SimpleDemoAppImpl *impl = nullptr;
 };

@@ -193,6 +193,14 @@ static void on_button_down(uint8_t controller_id, MLInputControllerButton button
 	g_impl->app->OnPressed();
 }
 
+static void on_button_up(uint8_t controller_id, MLInputControllerButton button, void *data) {
+	if (!g_impl) {
+		return;
+	}
+
+	g_impl->app->OnReleased();
+}
+
 int MLNativeWindow::Start()
 { 
 	MLLifecycleCallbacks lifecycle_callbacks = {};
@@ -200,7 +208,7 @@ int MLNativeWindow::Start()
   lifecycle_callbacks.on_pause = onPause;
   lifecycle_callbacks.on_resume = onResume;
 
-  struct application_context_t application_context;
+	struct application_context_t application_context{};
   application_context.dummy_value = 2;
 
   if (MLResult_Ok != MLLifecycleInit(&lifecycle_callbacks, (void*)&application_context)) {
@@ -214,6 +222,7 @@ int MLNativeWindow::Start()
 
   MLInputControllerCallbacks inputcontroller_callbacks = {};
   inputcontroller_callbacks.on_button_down = on_button_down;
+	inputcontroller_callbacks.on_button_up = on_button_up;
 
   MLInputSetControllerCallbacks(inputHandle, &inputcontroller_callbacks, nullptr);
 
@@ -233,7 +242,7 @@ int MLNativeWindow::Start()
   glGenFramebuffers(1, &impl->graphics_context.framebuffer_id);
 
   MLGraphicsOptions graphics_options = { 0, MLSurfaceFormat_RGBA8UNorm, MLSurfaceFormat_D32Float };
-	MLHandle opengl_context = reinterpret_cast<MLHandle>(impl->graphics_context.gl_context());
+	auto opengl_context = reinterpret_cast<MLHandle>(impl->graphics_context.gl_context());
   MLGraphicsCreateClientGL(&graphics_options, opengl_context, &impl->graphics_client);
 
   // Now that graphics is connected, the app is ready to go
