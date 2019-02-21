@@ -50,8 +50,8 @@ void Quad::InitContents()
 	std::vector<glm::vec3> vertices;
 
 	for (int i = 0; i < 32; ++i) {
-		float t = (float)i / 32.0f * 2 * M_PI;
-		float t2 = (float)(i + 1) / 32.0f * 2 * M_PI;
+    auto t = static_cast<float>((float) i / 32.0f * 2 * M_PI);
+    auto t2 = static_cast<float>((float) (i + 1) / 32.0f * 2 * M_PI);
 
 		float s1 = radius * sinf(t);
 		float c1 = radius * ratio * cosf(t);
@@ -59,28 +59,16 @@ void Quad::InitContents()
 		float s2 = radius * sinf(t2);
 		float c2 = radius * ratio * cosf(t2);
 
-		vertices.push_back(glm::vec3(0, 0, 0));
-		vertices.push_back(glm::vec3(c1, s1, 0));
-		vertices.push_back(glm::vec3(c2, s2, 0));
-	}
+    vertices.emplace_back(0, 0, -0.5);
+    vertices.emplace_back(c1, s1, -0.5);
+    vertices.emplace_back(c2, s2, -0.5);
+  }
 
-	impl->number_of_vertices = vertices.size();
-
-	/*
-	float vertices[] = {
-		-radius * ratio,  radius, 0.0f,
-		-radius * ratio, -radius, 0.0f,
-		 radius * ratio, -radius, 0.0f,
-
-		-radius * ratio,  radius, 0.0f,
-		 radius * ratio, -radius, 0.0f,
-		 radius * ratio,  radius, 0.0f,
-	};
-	*/
+  impl->number_of_vertices = static_cast<int>(vertices.size());
 
 	impl->program_id = LoadShaders(
-		"assets/shaders/basic.vert",
-		"assets/shaders/basic.frag"
+    "assets/shaders/basic.vert",
+    "assets/shaders/red.frag" // Red aiming
 	);
 
 	glGenVertexArrays(1, &impl->vertex_array_id);

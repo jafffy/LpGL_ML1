@@ -43,10 +43,8 @@
 #include "glm/gtx/quaternion.hpp"
 #include "glm/gtx/transform.hpp"
 
-#include "NotImplementedException.h"
-
 // Constants
-const char application_name[] = "com.magicleap.simpleglapp";
+const char application_name[] = "com.jafffy.simple_demo";
 
 // Structures
 struct application_context_t {
@@ -54,32 +52,19 @@ struct application_context_t {
 };
 
 struct graphics_context_t {
+  MLHandle gl_context_handle;
+
 #if defined(ML1_DEVICE)
   EGLDisplay egl_display;
   EGLContext egl_context;
 #elif defined(ML1_OSX)
 #endif
 
-	void *gl_display() {
-#if defined(ML1_DEVICE)
-		return reinterpret_cast<void*>(egl_display);
-#elif defined(ML1_OSX)
-		throw NotImplementedException("I have not yet implemented graphics_context_t::gl_display()!");
-#endif
-	}
-
-	void *gl_context() {
-#if defined(ML1_DEVICE)
-		return reinterpret_cast<void*>(egl_display);
-#elif defined(ML1_OSX)
-		throw NotImplementedException("I have not yet implemented graphics_context_t::gl_context()!");
-#endif
+  MLHandle &gl_context() {
+    return gl_context_handle;
 	}
 
 	GLuint framebuffer_id{};
-	GLuint vertex_shader_id{};
-	GLuint fragment_shader_id{};
-	GLuint program_id{};
 
   graphics_context_t();
   ~graphics_context_t();
@@ -117,6 +102,8 @@ graphics_context_t::graphics_context_t() {
     EGL_NONE
   };
   egl_context = eglCreateContext(egl_display, egl_config, EGL_NO_CONTEXT, context_attribs);
+
+  gl_context_handle = reinterpret_cast<MLHandle>(egl_context);
 #endif
 }
 
@@ -165,7 +152,7 @@ static void onResume(void* application_context)
 class MLNativeWindowImpl
 {
 public:
-	MLNativeWindowImpl(App* app)
+  explicit MLNativeWindowImpl(App *app)
 		: app(app) {}
 	~MLNativeWindowImpl()
 	{
@@ -178,7 +165,6 @@ public:
 	App* app = nullptr;
 	graphics_context_t graphics_context;
 	MLHandle graphics_client = ML_INVALID_HANDLE;
-	float kDecreasingAlpha = 0.0f;
 };
 
 static MLNativeWindowImpl* g_impl = nullptr;
@@ -318,8 +304,6 @@ int MLNativeWindow::Start()
 
 void MLNativeWindow::OnRender(float dt)
 {
-	// g_impl->kDecreasingAlpha += 0.5f * M_PI / 180 * dt;
-
 	MLGraphicsFrameParams frame_params;
 
 	MLResult out_result = MLGraphicsInitFrameParams(&frame_params);
@@ -357,8 +341,10 @@ void MLNativeWindow::OnRender(float dt)
 		Camera::Instance().V_for_LpGL = glm::transpose(glm::translate(mean_view_pos) * glm::toMat4(mean_view_rot));;
 
 		glBindFramebuffer(GL_FRAMEBUFFER, impl->graphics_context.framebuffer_id);
-		glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, virtual_camera_array.color_id, 0, camera);
-		glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, virtual_camera_array.depth_id, 0, camera);
+    glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, static_cast<GLuint>(virtual_camera_array.color_id),
+                              0, camera);
+    glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, static_cast<GLuint>(virtual_camera_array.depth_id),
+                              0, camera);
 		glViewport((GLint)viewport.x, (GLint)viewport.y,
 			(GLsizei)viewport.w, (GLsizei)viewport.h);
 

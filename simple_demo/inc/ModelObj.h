@@ -63,6 +63,8 @@ public:
 	int GetAbnormal() const;
 	bool IsAbnormal();
 
+  void InitalizeLpGLForLpGL();
+
 private:
 	ModelObjImpl* impl = nullptr;
 };

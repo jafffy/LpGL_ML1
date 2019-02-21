@@ -18,7 +18,7 @@ add_executable(simple_demo
         inc/Camera.h
         inc/Experiment.h
         inc/FrameScaler.h
-        inc/FrameScalerSampleApp.h
+        inc/SimpleDemoApp.h
         inc/graphics_context_t.h
         inc/lodepng.h
         inc/LpGLEngine.h
@@ -29,7 +29,7 @@ add_executable(simple_demo
         inc/ShaderUtils.h
         inc/Simplify.h
         inc/tinyobjloader.h
-        src/FrameScalerSampleApp.cpp
+        src/SimpleDemoApp.cpp
         src/graphics_context_t.cpp
         src/lodepng.cpp
         src/LpGLEngine.cpp

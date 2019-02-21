@@ -1,23 +1,15 @@
-#include "Experiment.h"
+
 #include "ModelObj.h"
 #include "BoundingBox.h"
 #include "Camera.h"
 
-#include <string>
-#include <vector>
-#include <cfloat>
 #include <functional>
 #include <unordered_map>
 
-#ifndef _WIN32
 #include <ml_logging.h>
-#else
-#include <glad/glad.h>
-#endif
 
 #define GLM_ENABLE_EXPERIMENTAL
-#include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp"
+
 #include "glm/gtc/type_ptr.hpp"
 #include "glm/gtx/transform.hpp"
 #include "glm/gtx/euler_angles.hpp"
@@ -27,8 +19,6 @@
 #include "tinyobjloader.h"
 
 #include "ShaderUtils.h"
-
-#include "Simplify.h"
 
 class ModelObjImpl
 {
@@ -68,11 +58,9 @@ public:
 	BoundingBox3D boundingBox;
 
 	bool isLastCulled = false;
-	bool isLastVisible = false;
 
 	bool isCulled = false;
 	bool isVisible = true;
-	bool isPhysicalObject = false;
 
 	glm::vec3 velocity = glm::vec3(0, 0, 0);
 	glm::vec3 acceleration = glm::vec3(0, 0, 0);
@@ -80,12 +68,8 @@ public:
 	BoundingSphere boundingSphere;
 
 	float dynamics = 1.0f;
-	bool isAbnormal = false;
-	int abnormalIndex = -1;
 
 	glm::vec2 lastProjectedPosition = glm::vec2(0, 0);
-
-	float quality = 0.0f;
 };
 
 ModelObj::ModelObj()
@@ -212,8 +196,8 @@ void ModelObj::Load(std::string path, std::string reduced1_path, std::string red
 
 void ModelObj::SetShaders(std::string vertex_shader_path, std::string frag_shader_path)
 {
-	impl->vertex_shader_path = vertex_shader_path;
-	impl->frag_shader_path = frag_shader_path;
+  impl->vertex_shader_path = std::move(vertex_shader_path);
+  impl->frag_shader_path = std::move(frag_shader_path);
 }
 
 bool ModelObj::Create()
@@ -286,18 +270,10 @@ void ModelObj::Destroy()
 
 void ModelObj::Update(float dt)
 {
-	if (impl->isPhysicalObject) {
-		static const glm::vec3 gravity(0, -0.16f, 0);
-
-		glm::vec3 acceleration = impl->acceleration + gravity;
-
-		impl->velocity = impl->velocity + acceleration * dt;
-		impl->position = impl->position + impl->velocity * dt * impl->dynamics;
-	}
-
 	glm::mat4 model = glm::translate(impl->position)
 		* glm::orientate4(impl->rotation)
 		* glm::scale(impl->scale);
+
 	impl->MVP = Camera::Instance().P * Camera::Instance().V * model;
 	impl->M = model;
 	impl->V = Camera::Instance().V;
@@ -305,11 +281,13 @@ void ModelObj::Update(float dt)
 
 void ModelObj::Render()
 {
-	if (!impl->isVisible || impl->isCulled)
+  if (impl->isCulled)
 		return;
 
 	GLuint target_vaid = impl->vertex_array_id;
-	unsigned int target_num_vertices = impl->vertices.size();
+  unsigned long target_num_vertices;
+
+  target_num_vertices = impl->vertices.size();
 
 	if (impl->isReduced2) {
 		target_vaid = impl->vertex_array_id_reduced_2;
@@ -320,7 +298,8 @@ void ModelObj::Render()
 		target_num_vertices = impl->vertices_reduced_1.size();
 	}
 
-	glUseProgram(impl->program_id);
+
+  glUseProgram(impl->program_id);
 
 	glUniformMatrix4fv(impl->matrix_id, 1, GL_FALSE, glm::value_ptr(impl->MVP));
 	glUniformMatrix4fv(impl->M_id, 1, GL_FALSE, glm::value_ptr(impl->M));
@@ -379,8 +358,6 @@ bool ModelObj::IsCulled() const
 
 void ModelObj::SetVisible(bool isVisible)
 {
-	impl->isLastVisible = impl->isVisible;
-
 	impl->isVisible = isVisible;
 }
 
@@ -392,11 +369,6 @@ bool ModelObj::IsVisible() const
 bool ModelObj::IsLastCulled() const
 {
 	return impl->isLastCulled;
-}
-
-bool ModelObj::IsLastVisible() const
-{
-	return impl->isLastVisible;
 }
 
 void ModelObj::SetReductionLevel(int n) {
@@ -414,89 +386,24 @@ void ModelObj::SetReductionLevel(int n) {
 	}
 }
 
-void ModelObj::SetIsPhysicalObject(bool isPhysicalObject)
-{
-	impl->isPhysicalObject = isPhysicalObject;
-}
-
-void ModelObj::SetInitialVelocity(const glm::vec3& v0)
-{
-	impl->velocity = v0;
-}
-
 std::vector<glm::vec3> ModelObj::GetBoundingBox() const
 {
 	std::vector<glm::vec3> output;
 
 	for (const auto& v : impl->boundingBox.vertices) {
 		auto v4 = (impl->M * glm::vec4(v, 1));
-		output.push_back(glm::vec3(v4.x, v4.y, v4.z));
+    output.emplace_back(v4.x, v4.y, v4.z);
 	}
 
 	return output;
 }
 
-BoundingSphere ModelObj::GetBoundingSphere() const
-{
-	BoundingSphere boundingSphereForReturn;
+void ModelObj::InitalizeLpGLForLpGL() {
+  impl->isReduced1 = false;
+  impl->isReduced2 = false;
 
-	boundingSphereForReturn.position = impl->position;
-	boundingSphereForReturn.radius = impl->boundingSphere.radius * impl->scale.x;
+  impl->isLastCulled = false;
+  impl->isCulled = false;
 
-	return boundingSphereForReturn;
-}
-
-void ModelObj::Reset(float position_weight, float dynamics)
-{
-	if (!impl->isPhysicalObject)
-		return;
-
-	bool isLeft = random() / (double)RAND_MAX < position_weight;
-
-	float initialX = 0.0f;
-	glm::vec3 initialVelocity;
-
-	float error_X = random() / (double)RAND_MAX * 0.05;
-	float error_Y = random() / (double)RAND_MAX * 0.25f;
-	float error_Z = random() / (double)RAND_MAX * 2.0f;
-
-	if (isLeft) {
-		initialX = -INITIAL_X;
-		initialVelocity = glm::vec3(0.25f + error_X, 0.25f + error_Y, 0);
-	}
-	else {
-		initialX = INITIAL_X;
-		initialVelocity = glm::vec3(-0.25f + error_X, 0.25f + error_Y, 0);
-	}
-
-	SetPosition(glm::vec3(initialX, 0, -5.f + error_Z));
-	SetInitialVelocity(initialVelocity);
-
-	impl->dynamics = dynamics;
-}
-
-void ModelObj::SetAbnormal(int i)
-{
-	impl->abnormalIndex = i;
-	impl->isAbnormal = true;
-}
-
-int ModelObj::GetAbnormal() const
-{
-	return impl->abnormalIndex;
-}
-
-bool ModelObj::IsAbnormal()
-{
-	return impl->isAbnormal;
-}
-
-void ModelObj::SetQuality(float quality)
-{
-	impl->quality = quality;
-}
-
-float ModelObj::GetQuality() const
-{
-	return impl->quality;
+  impl->lastProjectedPosition = glm::vec2(0, 0);
 }

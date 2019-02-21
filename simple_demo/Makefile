@@ -40,3 +40,6 @@ connect:  # Could I make a dependency between wifi?
 
 power:
 	open $(POWER_ANALYIZER)
+
+clean:
+	rm -rf .out/

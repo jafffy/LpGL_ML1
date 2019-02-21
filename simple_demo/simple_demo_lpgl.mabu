@@ -7,7 +7,7 @@ OPTIONS = \
 	warn/on
 
 SRCS = \
-	src/FrameScalerSampleApp.cpp \
+	src/SimpleDemoApp.cpp \
 	src/LpGLEngine.cpp \
 	src/MLNativeWindow.cpp \
 	src/Main.cpp \

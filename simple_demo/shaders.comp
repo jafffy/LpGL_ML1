@@ -6,5 +6,6 @@ DATAS = \
 	shaders/normal.vert : assets/shaders/normal.vert \
 	shaders/normal.frag : assets/shaders/normal.frag \
 	shaders/green.frag : assets/shaders/green.frag \
+	shaders/red.frag : assets/shaders/red.frag \
 	shaders/texture.vert : assets/shaders/texture.vert \
 	shaders/texture.frag : assets/shaders/texture.frag

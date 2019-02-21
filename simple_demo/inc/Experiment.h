@@ -3,8 +3,8 @@
 
 #define CULLING_FOV float(M_PI / 180 * 80.0f)
 
-#define LOD_LV2 float(M_PI / 180 * 30.0f)
-#define LOD_LV1 float(M_PI / 180 * 10.0f)
+#define LOD_LV2 float(M_PI / 180 * 60.0f)
+#define LOD_LV1 float(M_PI / 180 * 30.0f)
 
 #define INITIAL_X 1.75
 

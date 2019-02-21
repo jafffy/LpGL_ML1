@@ -11,10 +11,10 @@
 // %BANNER_END%
 
 #include "MLNativeWindow.h"
-#include "FrameScalerSampleApp.h"
+#include "SimpleDemoApp.h"
 
 int main() {
-	FrameScalerSampleApp app;
+  SimpleDemoApp app;
 	MLNativeWindow nativeWindow(&app);
 
 	nativeWindow.Start();
