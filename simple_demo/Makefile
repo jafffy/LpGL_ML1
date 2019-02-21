@@ -11,6 +11,8 @@ NUM_RECENT_LOGS=10
 ML1_IP_ADDRESS=192.168.0.13
 ML1_PORT=1131
 
+POWER_ANALYIZER="/Users/jafffy/MagicLeap/tools/ptprofiler/1.0.0.20181206/Power and Thermal Profiler.app"
+
 all:
 	mabu $(PACKAGE_FILE_NAME).package -t lumin -s $(MLCERT)
 
@@ -35,3 +37,6 @@ wifi:
 
 connect:  # Could I make a dependency between wifi?
 	mldb connect $(ML1_IP_ADDRESS):$(ML1_PORT)
+
+power:
+	open $(POWER_ANALYIZER)

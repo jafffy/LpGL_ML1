@@ -12,17 +12,9 @@
 
 #include "MLNativeWindow.h"
 #include "FrameScalerSampleApp.h"
-#include "VaryingFocusAngleScene.h"
-#include "ObjectQuqlityScene.h"
-#include "ImageBasedDynamicsScene.h"
-#include "UDPScene.h"
 
 int main() {
 	FrameScalerSampleApp app;
-	// VaryingFocusAngleScene app;
-	// ObjectQualityScene app;
-	// ImageBasedDynamicsScene app;
-	// UDPScene app;
 	MLNativeWindow nativeWindow(&app);
 
 	nativeWindow.Start();

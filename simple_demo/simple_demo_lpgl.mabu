@@ -7,21 +7,16 @@ OPTIONS = \
 	warn/on
 
 SRCS = \
-	src/FidelityScene.cpp \
 	src/FrameScalerSampleApp.cpp \
-	src/ImageBasedSampleApp.cpp \
 	src/LpGLEngine.cpp \
 	src/MLNativeWindow.cpp \
 	src/Main.cpp \
 	src/MeshLoader.cpp \
 	src/ModelObj.cpp \
-	src/ObjectQualityScene.cpp \
 	src/Quad.cpp \
 	src/ShaderUtils.cpp \
-	src/UDPScene.cpp \
-	src/VaryingFocusAngleScene.cpp \
 	src/graphics_context_t.cpp \
-	src/lodepng.cpp
+  src/lodepng.cpp
 
 USES = \
 	OpenGL \

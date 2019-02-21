@@ -3,17 +3,9 @@
 #include "Camera.h"
 #include "Experiment.h"
 #include "LpGLEngine.h"
-#include "BoundingBox.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <cmath>
-
-#include <vector>
 #include <functional>
 #include <random>
-#include <algorithm>
-#include <chrono>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtx/intersect.hpp"
@@ -35,73 +27,71 @@ struct HotMobile2019DemoEnv {
 bool HotMobile2019DemoEnv::is_LpGL_on = false;
 double HotMobile2019DemoEnv::toggling_timer = 0.0f;
 float HotMobile2019DemoEnv::sphere_scale = 0.5f;
-int HotMobile2019DemoEnv::num_spheres = 5;
+int HotMobile2019DemoEnv::num_spheres = 50;
 
 class FrameScalerSampleAppImpl
 {
 public:
-	std::vector<ModelObj*> models;
-	int targetFrameRate = 60;
+  std::vector<ModelObj *> models = {};
+  int targetFrameRate = 60;
 
-	float timer = 0.0f;
+  float timer = 0.0f;
 
-	float position_weight = 0.5f;
-	float dynamics = 1.0f;
+  float position_weight = 0.5f;
+  float dynamics = 1.0f;
 
-	void distributeObjects()
-	{
-		for (int i = 0; i < models.size(); ++i) {
-			auto* model = models[i];
+  void distributeObjects() {
+    for (int i = 0; i < models.size(); ++i) {
+      auto *model = models[i];
 
-			model->SetIsPhysicalObject(true);
-			model->Reset(0.5f, 1.0f);
-		}
-	}
+      model->SetIsPhysicalObject(true);
+      model->Reset(0.5f, 1.0f);
+    }
+  }
 
-	bool init_models()
-	{
-		int n = HotMobile2019DemoEnv::num_spheres;
+  bool init_models() {
+    int n = HotMobile2019DemoEnv::num_spheres;
 
-		for (int i = 0; i < n; ++i) {
-			auto model = new ModelObj();
+    for (int i = 0; i < n; ++i) {
+      auto model = new ModelObj();
 
-			model->Load(TARGET_MODEL_FILEPATH,
-				TARGET_MODEL_FILEPATH_REDUCED_1,
-				TARGET_MODEL_FILEPATH_REDUCED_2, TARGET_MODEL_BASEPATH);
+      model->Load(TARGET_MODEL_FILEPATH,
+                  TARGET_MODEL_FILEPATH_REDUCED_1,
+                  TARGET_MODEL_FILEPATH_REDUCED_2, TARGET_MODEL_BASEPATH);
 
-			model->SetShaders(VS_FILE_PATH, FS_FILE_PATH);
+      model->SetShaders(VS_FILE_PATH, FS_FILE_PATH);
 
-			model->SetScale(glm::vec3(HotMobile2019DemoEnv::sphere_scale));
-			model->SetVisible(true);
-			if (!model->Create())
-				return false;
+      model->SetScale(glm::vec3(HotMobile2019DemoEnv::sphere_scale));
+      model->SetVisible(true);
+      if (!model->Create())
+        return false;
 
-			assert(model);
-			models.push_back(model);
-		}
+      assert(model);
+      models.push_back(model);
+    }
 
-		distributeObjects();
+    distributeObjects();
 
-		return true;
-	}
+    return true;
+  }
 };
 
 FrameScalerSampleApp::FrameScalerSampleApp()
 {
-	impl = new FrameScalerSampleAppImpl();
+  impl = new FrameScalerSampleAppImpl();
 }
 
 FrameScalerSampleApp::~FrameScalerSampleApp()
 {
-	if (impl) {
-		delete impl;
-		impl = nullptr;
-	}
+  if (impl) {
+    delete impl;
+    impl = nullptr;
+  }
 }
 
 int FrameScalerSampleApp::Start()
 {
-	return 0;
+  return 0;
 }
 
 void FrameScalerSampleApp::Cleanup()
@@ -110,27 +100,29 @@ void FrameScalerSampleApp::Cleanup()
 
 void FrameScalerSampleApp::Update(float dt)
 {
-	float timer = impl->timer;
+  float timer = impl->timer;
 
-	impl->timer += dt;
+  impl->timer += dt;
 
-	for (auto* model : impl->models) {
-		if (model->IsVisible()) {
-			const auto& p = model->GetPosition();
+  for (auto *model : impl->models) {
+    if (model->IsVisible()) {
+      const auto &p = model->GetPosition();
 
-			if (p.y < -1) {
-				model->Reset(0.5f, 1.0f);
-			}
+      if (p.y < -1) {
+        model->Reset(0.5f, 1.0f);
+      }
 
-			model->Update(dt);
-		}
-	}
+      model->Update(dt);
+    }
+  }
 
   // Demo timer update for toggling
   {
+    // FIXME: Make toggle works!
     double& toggling_timer = HotMobile2019DemoEnv::toggling_timer;
     toggling_timer += dt;
 
+    /*
     bool& is_LpGL_on = HotMobile2019DemoEnv::is_LpGL_on;
 
     if (is_LpGL_on) {
@@ -143,11 +135,11 @@ void FrameScalerSampleApp::Update(float dt)
         is_LpGL_on = true;
       }
     }
+    */
   }
 }
 
-void FrameScalerSampleApp::OnRender(int cameraIndex, float dt)
-{
+void FrameScalerSampleApp::OnRender(int cameraIndex, float dt) {
   static bool isFirstRender = true;
 
   if (isFirstRender) {
@@ -165,7 +157,7 @@ void FrameScalerSampleApp::OnRender(int cameraIndex, float dt)
     auto state = eels_with_full_lpgl;
 
     impl->targetFrameRate = engine.Update(state, impl->models,
-        impl->targetFrameRate, dt);
+                                          impl->targetFrameRate, dt);
   }
 
   glClearColor(0.0, 0.0, 0.0, 0.0);
@@ -201,10 +193,8 @@ void FrameScalerSampleApp::DestroyContents()
   for (auto* model : impl->models) {
     model->Destroy();
 
-    if (model) {
-      delete model;
-      model = nullptr;
-    }
+    delete model;
+    model = nullptr;
   }
 
   impl->models.clear();
