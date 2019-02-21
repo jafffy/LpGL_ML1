@@ -10,12 +10,16 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtx/intersect.hpp"
 
-#ifndef _WIN32
+#if defined(ML1_DEVICE)
 #include <GLES3/gl3.h>
 #include <GLES3/gl3ext.h>
+#elif defined(ML1_OSX)
+
+#include <GL/glew.h>
+
+#endif
 
 #include <ml_logging.h>
-#endif
 
 struct HotMobile2019DemoEnv {
   static bool is_LpGL_on;
@@ -35,17 +39,13 @@ public:
   std::vector<ModelObj *> models = {};
   int targetFrameRate = 60;
 
-  float timer = 0.0f;
-
-  float position_weight = 0.5f;
-  float dynamics = 1.0f;
-
   void distributeObjects() {
+    float const k_distance_front_of_user = 5;
+
     for (int i = 0; i < models.size(); ++i) {
       auto *model = models[i];
 
-      model->SetIsPhysicalObject(true);
-      model->Reset(0.5f, 1.0f);
+      model->SetPosition(glm::vec3(i, 0, k_distance_front_of_user));
     }
   }
 
@@ -100,20 +100,8 @@ void FrameScalerSampleApp::Cleanup()
 
 void FrameScalerSampleApp::Update(float dt)
 {
-  float timer = impl->timer;
-
-  impl->timer += dt;
-
   for (auto *model : impl->models) {
-    if (model->IsVisible()) {
-      const auto &p = model->GetPosition();
-
-      if (p.y < -1) {
-        model->Reset(0.5f, 1.0f);
-      }
-
-      model->Update(dt);
-    }
+    model->Update(dt);
   }
 
   // Demo timer update for toggling
@@ -143,7 +131,6 @@ void FrameScalerSampleApp::OnRender(int cameraIndex, float dt) {
   static bool isFirstRender = true;
 
   if (isFirstRender) {
-    ML_LOG_TAG(Info, LATENCY, "First Render");
     isFirstRender = false;
   }
 

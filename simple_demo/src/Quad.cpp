@@ -1,23 +1,27 @@
-#include "Quad.h"
+#include <vector>
 
-#include <ml_logging.h>
-
+#if defined(ML1_DEVICE)
 #include <GLES3/gl3.h>
+#include <GLES3/gl3ext.h>
+#elif defined(ML1_OSX)
+
+#include <GL/glew.h>
+
+#endif
 
 #include "glm/glm.hpp"
 
-#include <vector>
+#include "Quad.h"
 
 #include "ShaderUtils.h"
-
 #include "lodepng.h"
 
 class QuadImpl
 {
 public:
-	GLuint vertex_array_id;
-	GLuint vertex_buffer;
-	GLuint program_id;
+	GLuint vertex_array_id{};
+	GLuint vertex_buffer{};
+	GLuint program_id{};
 
 	GLuint texture_id = 0;
 	GLuint sampler_id = 0;

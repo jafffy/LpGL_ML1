@@ -23,3 +23,6 @@ USES = \
 	ml_sdk \
 	stdc++
 
+DEFS.device = ML1_DEVICE
+DEFS.osx = ML_OSX
+

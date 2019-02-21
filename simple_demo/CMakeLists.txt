@@ -2,10 +2,15 @@ cmake_minimum_required(VERSION 3.13)
 project(simple_demo)
 
 set(CMAKE_CXX_STANDARD 14)
+set(ML1_HOME /Users/jafffy/MagicLeap/mlsdk/v0.17.0)
+
+add_definitions(-DML1_OSX)
 
 include_directories(.)
 include_directories(inc)
 include_directories(src)
+include_directories(${ML1_HOME}/include)
+include_directories(/usr/local/include)
 
 add_executable(simple_demo
         inc/App.h
@@ -34,4 +39,4 @@ add_executable(simple_demo
         src/ModelObj.cpp
         src/Quad.cpp
         src/ShaderUtils.cpp
-        )
+        inc/NotImplementedException.h)

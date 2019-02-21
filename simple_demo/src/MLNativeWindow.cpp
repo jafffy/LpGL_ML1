@@ -2,7 +2,8 @@
 #include "Camera.h"
 #include "Experiment.h"
 
-#ifndef _WIN32
+
+#if defined(ML1_DEVICE)
 #include <unistd.h>
 
 #ifndef EGL_EGLEXT_PROTOTYPES
@@ -18,6 +19,13 @@
 
 #include <GLES3/gl3.h>
 #include <GLES3/gl3ext.h>
+#elif defined(ML1_OSX)
+
+#include <unistd.h>
+
+#include <GL/glew.h>
+
+#endif
 
 #include <ml_graphics.h>
 #include <ml_head_tracking.h>
@@ -25,22 +33,17 @@
 #include <ml_lifecycle.h>
 #include <ml_logging.h>
 #include <ml_input.h>
-#endif
 
 #include <chrono>
-#include <cmath>
 #include <vector>
 
 #define GLM_ENABLE_EXPERIMENTAL
-#include "glm/gtc/quaternion.hpp"
-#include "glm/gtc/matrix_transform.hpp"
+
 #include "glm/gtc/type_ptr.hpp"
 #include "glm/gtx/quaternion.hpp"
 #include "glm/gtx/transform.hpp"
 
-#include <pthread.h>
-
-#ifndef _WIN32
+#include "NotImplementedException.h"
 
 // Constants
 const char application_name[] = "com.magicleap.simpleglapp";
@@ -51,13 +54,32 @@ struct application_context_t {
 };
 
 struct graphics_context_t {
+#if defined(ML1_DEVICE)
   EGLDisplay egl_display;
   EGLContext egl_context;
+#elif defined(ML1_OSX)
+#endif
 
-  GLuint framebuffer_id;
-  GLuint vertex_shader_id;
-  GLuint fragment_shader_id;
-  GLuint program_id;
+	void *gl_display() {
+#if defined(ML1_DEVICE)
+		return reinterpret_cast<void*>(egl_display);
+#elif defined(ML1_OSX)
+		throw NotImplementedException("I have not yet implemented graphics_context_t::gl_display()!");
+#endif
+	}
+
+	void *gl_context() {
+#if defined(ML1_DEVICE)
+		return reinterpret_cast<void*>(egl_display);
+#elif defined(ML1_OSX)
+		throw NotImplementedException("I have not yet implemented graphics_context_t::gl_context()!");
+#endif
+	}
+
+	GLuint framebuffer_id{};
+	GLuint vertex_shader_id{};
+	GLuint fragment_shader_id{};
+	GLuint program_id{};
 
   graphics_context_t();
   ~graphics_context_t();
@@ -68,6 +90,7 @@ struct graphics_context_t {
 };
 
 graphics_context_t::graphics_context_t() {
+#if defined(ML1_DEVICE)
   egl_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 
   EGLint major = 4;
@@ -94,14 +117,19 @@ graphics_context_t::graphics_context_t() {
     EGL_NONE
   };
   egl_context = eglCreateContext(egl_display, egl_config, EGL_NO_CONTEXT, context_attribs);
+#endif
 }
 
 void graphics_context_t::makeCurrent() {
+#if defined(ML1_DEVICE)
   eglMakeCurrent(egl_display, EGL_NO_SURFACE, EGL_NO_SURFACE, egl_context);
+#endif
 }
 
 void graphics_context_t::unmakeCurrent() {
+#if defined(ML1_DEVICE)
   eglMakeCurrent(NULL, EGL_NO_SURFACE, EGL_NO_SURFACE, NULL);
+#endif
 }
 
 void graphics_context_t::swapBuffers() {
@@ -109,8 +137,10 @@ void graphics_context_t::swapBuffers() {
 }
 
 graphics_context_t::~graphics_context_t() {
+#if defined(ML1_DEVICE)
   eglDestroyContext(egl_display, egl_context);
   eglTerminate(egl_display);
+#endif
 }
 
 // Callbacks
@@ -131,8 +161,6 @@ static void onResume(void* application_context)
   ((struct application_context_t*)application_context)->dummy_value = 2;
   ML_LOG(Info, "%s: On resume called.", application_name);
 }
-
-#endif
 
 class MLNativeWindowImpl
 {
@@ -219,7 +247,7 @@ int MLNativeWindow::Start()
   glGenFramebuffers(1, &impl->graphics_context.framebuffer_id);
 
   MLGraphicsOptions graphics_options = { 0, MLSurfaceFormat_RGBA8UNorm, MLSurfaceFormat_D32Float };
-  MLHandle opengl_context = reinterpret_cast<MLHandle>(impl->graphics_context.egl_context);
+	MLHandle opengl_context = reinterpret_cast<MLHandle>(impl->graphics_context.gl_context());
   MLGraphicsCreateClientGL(&graphics_options, opengl_context, &impl->graphics_client);
 
   // Now that graphics is connected, the app is ready to go
