@@ -16,12 +16,15 @@
 #include "ShaderUtils.h"
 #include "lodepng.h"
 
+#include "LpGLEngine.h"
+
 class QuadImpl
 {
 public:
 	GLuint vertex_array_id{};
 	GLuint vertex_buffer{};
-	GLuint program_id{};
+	GLuint red_program_id{};
+	GLuint green_program_id{};
 
 	GLuint texture_id = 0;
 	GLuint sampler_id = 0;
@@ -66,9 +69,14 @@ void Quad::InitContents()
 
   impl->number_of_vertices = static_cast<int>(vertices.size());
 
-	impl->program_id = LoadShaders(
+	impl->red_program_id = LoadShaders(
     "assets/shaders/basic.vert",
     "assets/shaders/red.frag" // Red aiming
+	);
+
+	impl->green_program_id = LoadShaders(
+		"assets/shaders/basic.vert",
+		"assets/shaders/green.frag" // Green aiming
 	);
 
 	glGenVertexArrays(1, &impl->vertex_array_id);
@@ -82,7 +90,7 @@ void Quad::InitContents()
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
-	glUseProgram(impl->program_id);
+	glUseProgram(impl->red_program_id);
 
 	glUseProgram(0);
 }
@@ -96,12 +104,16 @@ void Quad::DestroyContents()
 
 	glDeleteVertexArrays(1, &impl->vertex_array_id);
 
-	glDeleteProgram(impl->program_id);
+	glDeleteProgram(impl->red_program_id);
+	glDeleteProgram(impl->green_program_id);
 }
 
 void Quad::Draw()
 {
-	glUseProgram(impl->program_id);
+	if (LpGLEngine::instance().IsOn)
+		glUseProgram(impl->green_program_id);
+	else
+		glUseProgram(impl->red_program_id);
 
 	glBindVertexArray(impl->vertex_array_id);
 

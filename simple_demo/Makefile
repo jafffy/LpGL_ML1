@@ -2,8 +2,8 @@ PACKAGE_FILE_NAME=simple_demo_lpgl
 PACKAGE_NAME=com.jafffy.simple_demo_lpgl
 MLCERT=/Users/jafffy/Dropbox/credentials/macos.cert
 
-SECONDS=15
-QUALITY=720p
+SECONDS=10
+QUALITY=1080p
 VIDEO_FILE_NAME=simple-demo-$(SECONDS)s.mp4
 
 NUM_RECENT_LOGS=10
